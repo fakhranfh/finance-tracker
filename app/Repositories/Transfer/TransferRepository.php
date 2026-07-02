@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Repositories\Transfer;
+
+use App\Models\Transfer;
+
+class TransferRepository implements TransferRepositoryInterface
+{
+    public function query(array $filters = [])
+    {
+        $query = Transfer::query();
+
+        if (! empty($filters['created_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_from']);
+        }
+
+        if (! empty($filters['created_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_to']);
+        }
+
+        return $query;
+    }
+
+    public function get(array $filters = [], array $with = [])
+    {
+        $query = $this->query($filters);
+
+        return $query->with($with)->get();
+    }
+
+    public function getAll()
+    {
+        return Transfer::all();
+    }
+
+    public function find($id)
+    {
+        return Transfer::find($id);
+    }
+
+    public function create(array $data)
+    {
+        return Transfer::create($data);
+    }
+
+    public function update($id, array $data)
+    {
+        $model = Transfer::findOrFail($id);
+        $model->update($data);
+
+        return $model;
+    }
+
+    public function delete($id)
+    {
+        return Transfer::destroy($id);
+    }
+}
