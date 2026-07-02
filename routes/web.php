@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('/dashboard', 'dashboard')->name('dashboard');
 
-    });
+    Route::resource('wallets', WalletController::class)->only(['index', 'store', 'update', 'destroy']);
+
+});
 
 Route::post('/logout', function (Request $request) {
     auth()->logout();

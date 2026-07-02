@@ -10,6 +10,10 @@ class WalletRepository implements WalletRepositoryInterface
     {
         $query = Wallet::query();
 
+        if (! empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
         if (! empty($filters['created_from'])) {
             $query->whereDate('created_at', '>=', $filters['created_from']);
         }

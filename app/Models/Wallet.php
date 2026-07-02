@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\WalletFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,5 +40,12 @@ class Wallet extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    protected function formattedBalance(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): string => 'Rp '.number_format($this->balance, 0, ',', '.'),
+        );
     }
 }
