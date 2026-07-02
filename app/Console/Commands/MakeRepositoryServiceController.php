@@ -47,6 +47,10 @@ class MakeRepositoryServiceController extends Command
 
             $this->generateModel($name, $this->columns);
 
+            // Build filter definitions after all column info is available
+            $this->filterDefinitions = $this->buildFilterDefinitions();
+
+            $this->generateRepository($name);
             $this->generateService($name, $label);
             $this->bindToServiceProvider($name);
 
@@ -61,10 +65,6 @@ class MakeRepositoryServiceController extends Command
                 $this->configureFormInputTypes($name);
             }
 
-            // Build filter definitions after all column info is available
-            $this->filterDefinitions = $this->buildFilterDefinitions();
-
-            $this->generateRepository($name);
             $this->generateController($name, $label, $viewPath);
             $this->generateBladeViews($name, $label, $viewPath);
             $this->generateRoutes($name, $label);
