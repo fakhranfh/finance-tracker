@@ -1,8 +1,11 @@
-# Laravel 13 Boilerplate
+# Finance Tracker
 
-A production-ready Laravel starter kit built for developers who need **full control** over their application — not an opinionated admin panel.
+A personal finance tracking application built with Laravel, designed to help users record, organize, and understand their income and expenses.
 
-This boilerplate generates clean, conventional Laravel code (controllers, Blade views, form requests) that you own and can freely customize without being locked into a third-party component ecosystem. It follows a strict **Repository Pattern** architecture, ships with server-side DataTables, and includes a complete testing suite (Pest, Dusk, K6) — giving you a solid foundation for long-term, maintainable applications.
+The project is built on top of a Laravel 13 boilerplate that follows a strict **Repository Pattern** architecture and ships with a CRUD generator, server-side DataTables, and a full testing suite (Pest, Dusk, K6).
+
+> [!NOTE]
+> This project is in early development. Authentication and the core application shell are in place; finance-specific features (transactions, budgets, reports) are being built on top of this foundation.
 
 ## Tech Stack
 
@@ -19,46 +22,7 @@ This boilerplate generates clean, conventional Laravel code (controllers, Blade 
 
 ---
 
-## Screenshots
-
-### Landing Page
-The public entry point with a hero section, application branding, and navigation links that adapt based on authentication state.
-
-![Landing Page](docs/dusk/images/landing-page.png)
-
-### Authentication
-
-![Register](docs/dusk/images/register-page.png)
-
-![Login](docs/dusk/images/login-page.png)
-
-![Register Error](docs/dusk/images/register-error.png)
-
-![Login Error](docs/dusk/images/login-error.png)
-
-### Email Verification & Password Recovery
-
-![Email Verification](docs/dusk/images/email-verify-notice.png)
-
-![Forgot Password](docs/dusk/images/forgot-password-page.png)
-
-![Reset Password](docs/dusk/images/reset-password-page.png)
-
-### Dashboard & Profile
-
-![Dashboard](docs/dusk/images/dashboard.png)
-
-![Edit Profile](docs/dusk/images/edit-profile-page.png)
-
-![Edit Profile Success](docs/dusk/images/edit-profile-success.png)
-
-![Change Password](docs/dusk/images/change-password-page.png)
-
-![Change Password Success](docs/dusk/images/change-password-success.png)
-
----
-
-## Features Overview
+## Features
 
 ### Authentication
 
@@ -71,10 +35,6 @@ Full authentication flow powered by **Laravel Fortify**:
 - **Password Reset** — secure token-based reset with the same password policy as registration
 - **Logout** — session termination with redirect to login
 
-> End-user walkthrough with screenshots: [`docs/USERGUIDE.md`](docs/USERGUIDE.md)
-
----
-
 ### Profile Management
 
 Authenticated users can manage their account from the profile page:
@@ -83,88 +43,21 @@ Authenticated users can manage their account from the profile page:
 - **Email change flow** — changing email triggers a re-verification step before the new address is applied
 - **Change password** — requires current password; shows animated loading state and success/error feedback
 
----
+### Application Architecture
 
-### CRUD Generator (`make:rsc`)
-
-A custom Artisan command that scaffolds a complete CRUD module in seconds:
-
-```bash
-php artisan make:rsc Product --label="Products"
-```
-
-**What gets generated automatically:**
-
-- Eloquent Model + Migration
-- Repository Interface & Implementation
-- Service Layer
-- Controller (with list API endpoint for DataTables)
-- Form Requests (Store + Update)
-- Blade Views: `index`, `create`, `edit`, `show`
-- RESTful routes
-- Sidebar menu item
-
-#### Generated Output
-
-![Product Index](docs/dusk/images/crud/product-index.png)
-
-![Product Create](docs/dusk/images/crud/product-create.png)
-
-![Product Show](docs/dusk/images/crud/product-show.png)
-
-![Product Edit](docs/dusk/images/crud/product-edit.png)
-
-To delete a generated module:
-
-```bash
-php artisan delete:rsc Product
-```
-
-> Visual showcase with architecture diagrams: [`docs/CRUD_GENERATOR_SHOWCASE.md`](docs/CRUD_GENERATOR_SHOWCASE.md)  
-> Full command reference with column configuration: [`docs/CRUD_GENERATOR.md`](docs/CRUD_GENERATOR.md)
-
----
-
-### DataTables Integration
-
-Generated index pages use server-side DataTables via a dedicated API endpoint (`/route/data/list`):
-
-- Server-side AJAX loading
-- Column sorting
-- Global search
-- Configurable rows-per-page pagination
-- Edit / View / Delete action buttons
-- Dark mode compatible
-
-> Integration details and customization: [`docs/DATATABLE_INTEGRATION.md`](docs/DATATABLE_INTEGRATION.md)
-
----
-
-### Repository Pattern Architecture
-
-All entities (both generated and manual) follow a strict **Repository Pattern**:
+All entities follow a strict **Repository Pattern**:
 
 ```
 Controller → Service → Repository Interface → Repository Implementation
 ```
 
-- Decouples business logic from data access
-- Makes unit testing straightforward (swap implementations via DI)
-- Enforced consistently across the codebase via `AppServiceProvider` bindings
+New CRUD modules (e.g. transactions, categories, budgets) can be scaffolded in seconds with the built-in generator:
 
-> Architecture guide and implementation examples: [`docs/REPOSITORY_PATTERN.md`](docs/REPOSITORY_PATTERN.md)
+```bash
+php artisan make:rsc Transaction --label="Transactions"
+```
 
----
-
-### Testing Infrastructure
-
-| Type | Tool | Command |
-|---|---|---|
-| Feature / Unit | Pest v4 | `php artisan test --compact` |
-| Browser (E2E) | Laravel Dusk | `php artisan dusk` |
-| Performance | K6 | `k6 run tests/k6/<file>` |
-
-> Dusk setup and browser test guide: [`docs/dusk/TESTING.md`](docs/dusk/TESTING.md)
+This generates the model, migration, repository, service, controller, form requests, and Blade views (index, create, edit, show) with server-side DataTables wired up automatically.
 
 ---
 
@@ -180,8 +73,8 @@ Controller → Service → Repository Interface → Repository Implementation
 ### Installation
 
 ```bash
-git clone https://github.com/fakhranfh/laravel-13-boilerplate
-cd laravel-13-boilerplate
+git clone https://github.com/fakhranfh/finance-tracker
+cd finance-tracker
 composer install
 npm install
 ```
@@ -200,7 +93,7 @@ This copies `.env.example` → `.env`, generates the app key, runs migrations, a
 composer run dev
 ```
 
-Starts PHP server, queue listener, and Vite dev server concurrently.
+Starts the PHP server, queue listener, and Vite dev server concurrently.
 
 ---
 
@@ -234,31 +127,16 @@ php artisan db:seed
 Key variables to configure in `.env`:
 
 ```env
-APP_NAME="Laravel 13 Boilerplate"
+APP_NAME="Finance Tracker"
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
-DB_DATABASE=laravel-13-boilerplate
+DB_DATABASE=finance-tracker
 
 MAIL_MAILER=log        # Use 'smtp' in production
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 ```
-
----
-
-## Documentation
-
-| Document | Description |
-|---|---|
-| [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) | **Complete setup and development guide (start here)** |
-| [`docs/USERGUIDE.md`](docs/USERGUIDE.md) | End-user feature walkthrough with screenshots |
-| [`docs/CRUD_GENERATOR_SHOWCASE.md`](docs/CRUD_GENERATOR_SHOWCASE.md) | `make:rsc` generated output — screenshots and architecture |
-| [`docs/CRUD_GENERATOR.md`](docs/CRUD_GENERATOR.md) | `make:rsc` command — full reference |
-| [`docs/REPOSITORY_PATTERN.md`](docs/REPOSITORY_PATTERN.md) | Architecture guide for the repository layer |
-| [`docs/DATATABLE_INTEGRATION.md`](docs/DATATABLE_INTEGRATION.md) | DataTables server-side integration |
-| [`docs/DATATABLE_EXAMPLE.md`](docs/DATATABLE_EXAMPLE.md) | DataTables usage examples |
-| [`docs/dusk/TESTING.md`](docs/dusk/TESTING.md) | Dusk browser test setup and guide |
 
 ---
 
