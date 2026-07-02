@@ -180,3 +180,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+## System Design Reference
+
+- Before making architectural, database, or scaling decisions, consult `docs/SYSTEM_DESIGN.md`. It defines the tech stack, layered architecture (Controller > Service > Repository), database schema (ERD, UUID/ULID keys, money as BIGINT), scalability strategy, and security requirements for this app.
