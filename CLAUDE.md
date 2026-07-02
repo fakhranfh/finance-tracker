@@ -14,6 +14,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/boost (BOOST) - v2
+- laravel/dusk (DUSK) - v8
 - laravel/mcp (MCP) - v0
 - laravel/pail (PAIL) - v1
 - laravel/pint (PINT) - v1
@@ -24,10 +25,6 @@ This application is a Laravel application and its main Laravel ecosystems packag
 ## Skills Activation
 
 This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
-
-## Git Commits
-
-- When creating commit messages, follow the Conventional Commits specification documented in `docs/CONVENTIONAL_COMMITS.md`.
 
 ## Conventions
 
@@ -111,6 +108,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 - Laravel can be deployed using [Laravel Cloud](https://cloud.laravel.com/), which is the fastest way to deploy and scale production Laravel applications.
 
+=== tests rules ===
+
+# Test Enforcement
+
+- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+
 === laravel/core rules ===
 
 # Do Things the Laravel Way
@@ -122,28 +126,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ### Model Creation
 
 - When creating new models, create useful factories and seeders for them too. Ask the user if they need any other things, using `php artisan make:model --help` to check the available options.
-
-### Creating New Entities with CRUD Generator
-
-- For creating new entities with full CRUD functionality, use the CRUD generator: `php artisan make:rsc {ModelName} --label="Label"`.
-- The CRUD generator automatically creates: model, migration, repository, service, controller, form requests, blade views (index, create, edit, show), and sidebar menu item.
-- Run `php artisan make:rsc --help` to see available options (e.g., `--view-path`, `--repository-service-only`).
-- To delete an entity and its related files: `php artisan delete:rsc {ModelName}` (use `--migrations` flag to also delete migration files).
-- For interactive generation with column configuration: follow the prompts to define columns, types, and form input types. Use `back` to remove the last column if needed.
-- For complete details, examples, and troubleshooting, see `docs/CRUD_GENERATOR.md`.
-
-### Manual Entity Creation (Without make:rsc)
-
-- If creating an entity **without** the CRUD generator, you **MUST** follow the **Repository Pattern** documented in `docs/REPOSITORY_PATTERN.md`.
-- Required structure:
-  - **Repository Interface**: `app/Repositories/{Model}/{Model}RepositoryInterface.php`
-  - **Repository Implementation**: `app/Repositories/{Model}/{Model}Repository.php`
-  - **Service Layer**: `app/Services/{Model}Service.php`
-  - **Controller**: `app/Http/Controllers/{Model}Controller.php`
-  - **Form Requests**: `app/Http/Requests/{Model}/Store{Model}Request.php`, `Update{Model}Request.php`
-  - **Service Provider Binding**: Register in `app/Providers/AppServiceProvider.php`
-- Follow the method signatures and patterns in `docs/REPOSITORY_PATTERN.md` for consistency with auto-generated code.
-- This ensures code consistency across the entire application and makes it easier for all team members to understand and maintain entities.
 
 ## APIs & Eloquent Resources
 
