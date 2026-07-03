@@ -2,7 +2,11 @@
 
 namespace App\Services;
 
+use App\Exceptions\InsufficientBalanceException;
+use App\Models\Transfer;
+use App\Models\Wallet;
 use App\Repositories\Transfer\TransferRepositoryInterface;
+use Illuminate\Support\Facades\DB;
 
 class TransferService
 {
@@ -11,6 +15,35 @@ class TransferService
     public function __construct(TransferRepositoryInterface $transferRepository)
     {
         $this->transferRepository = $transferRepository;
+    }
+
+    /**
+     * Transfer funds between two wallets.
+     *
+     * @param  array{user_id: string, from_wallet_id: string, to_wallet_id: string, amount: int, transfer_date: string, notes?: string|null}  $data
+     *
+     * @throws InsufficientBalanceException
+     */
+    public function transfer(array $data): Transfer
+    {
+        return DB::transaction(function () use ($data) {
+            $walletIds = [$data['from_wallet_id'], $data['to_wallet_id']];
+            sort($walletIds);
+
+            $wallets = Wallet::whereIn('id', $walletIds)->lockForUpdate()->get()->keyBy('id');
+
+            $fromWallet = $wallets->get($data['from_wallet_id']);
+            $toWallet = $wallets->get($data['to_wallet_id']);
+
+            if ($fromWallet->balance < $data['amount']) {
+                throw new InsufficientBalanceException;
+            }
+
+            $fromWallet->decrement('balance', $data['amount']);
+            $toWallet->increment('balance', $data['amount']);
+
+            return $this->transferRepository->create($data);
+        });
     }
 
     public function get(array $filters = [], array $with = [])
