@@ -6,10 +6,8 @@ use App\Exceptions\InsufficientBalanceException;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\Transaction;
 use App\Models\Transfer;
-use App\Services\CategoryService;
 use App\Services\TransactionService;
 use App\Services\TransferService;
-use App\Services\WalletService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,8 +17,6 @@ class TransactionController extends Controller
     public function __construct(
         private TransactionService $transactionService,
         private TransferService $transferService,
-        private WalletService $walletService,
-        private CategoryService $categoryService,
     ) {}
 
     public function index(Request $request): View|RedirectResponse
@@ -28,43 +24,26 @@ class TransactionController extends Controller
         $this->authorize('viewAny', Transaction::class);
         $this->authorize('viewAny', Transfer::class);
 
-        $wallets = $this->walletService->get(['user_id' => auth()->id()]);
-        $categories = $this->categoryService->get(['user_id' => auth()->id()]);
-        $expenseCategories = $categories->where('type', 'expense')->values();
-        $incomeCategories = $categories->where('type', 'income')->values();
-
-        if ($wallets->isEmpty() || $expenseCategories->isEmpty() || $incomeCategories->isEmpty()) {
-            return redirect()->route('wallets.index')
-                ->withErrors(['setup' => 'Please set up at least one wallet and both income and expense categories before recording transactions.']);
-        }
-
         $filters = [
-            'user_id' => auth()->id(),
             'wallet_id' => $request->input('wallet_id'),
             'date_from' => $request->input('date_from'),
             'date_to' => $request->input('date_to'),
         ];
 
-        $transactions = $this->transactionService->get($filters, ['wallet', 'category']);
-        $transfers = $this->transferService->get($filters, ['fromWallet', 'toWallet']);
+        $pageData = $this->transactionService->getHistoryPageData(auth()->id(), $filters);
 
-        $history = $transactions->map(fn (Transaction $transaction) => [
-            'model' => $transaction,
-            'kind' => $transaction->type,
-            'date' => $transaction->transaction_date,
-        ])->concat($transfers->map(fn (Transfer $transfer) => [
-            'model' => $transfer,
-            'kind' => 'transfer',
-            'date' => $transfer->transfer_date,
-        ]))->sortByDesc(fn (array $entry) => $entry['date'])->values();
+        if ($pageData['history'] === null) {
+            return redirect()->route('wallets.index')
+                ->withErrors(['setup' => 'Please set up at least one wallet and both income and expense categories before recording transactions.']);
+        }
 
-        return view('transactions.index', compact(
-            'history',
-            'wallets',
-            'expenseCategories',
-            'incomeCategories',
-            'filters',
-        ));
+        return view('transactions.index', [
+            'history' => $pageData['history'],
+            'wallets' => $pageData['wallets'],
+            'expenseCategories' => $pageData['expenseCategories'],
+            'incomeCategories' => $pageData['incomeCategories'],
+            'filters' => array_merge($filters, ['user_id' => auth()->id()]),
+        ]);
     }
 
     public function store(StoreTransactionRequest $request): RedirectResponse
