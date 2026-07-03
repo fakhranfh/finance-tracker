@@ -2,6 +2,7 @@
 
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Models\Transfer;
 use App\Models\User;
 use App\Models\Wallet;
 use Database\Seeders\RolePermissionSeeder;
@@ -108,6 +109,50 @@ test('data endpoint filters by wallet', function () {
     $response->assertOk();
     expect($response->json('data'))->toHaveCount(1);
     expect($response->json('data.0.amount'))->toBe(500);
+});
+
+test('data endpoint filters by type', function () {
+    $wallet = Wallet::factory()->for($this->user)->create();
+    $expenseCategory = Category::factory()->for($this->user)->create(['type' => 'expense']);
+    $incomeCategory = Category::factory()->for($this->user)->create(['type' => 'income']);
+    $otherWallet = Wallet::factory()->for($this->user)->create();
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $wallet->id,
+        'category_id' => $expenseCategory->id,
+        'type' => 'expense',
+        'amount' => 100,
+    ]);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $wallet->id,
+        'category_id' => $incomeCategory->id,
+        'type' => 'income',
+        'amount' => 200,
+    ]);
+
+    Transfer::factory()->create([
+        'user_id' => $this->user->id,
+        'from_wallet_id' => $wallet->id,
+        'to_wallet_id' => $otherWallet->id,
+        'amount' => 300,
+    ]);
+
+    $response = $this->actingAs($this->user)->getJson(route('transactions.data', ['type' => 'expense']));
+
+    $response->assertOk();
+    expect($response->json('data'))->toHaveCount(1);
+    expect($response->json('data.0.kind'))->toBe('expense');
+    expect($response->json('data.0.amount'))->toBe(100);
+
+    $transferResponse = $this->actingAs($this->user)->getJson(route('transactions.data', ['type' => 'transfer']));
+
+    $transferResponse->assertOk();
+    expect($transferResponse->json('data'))->toHaveCount(1);
+    expect($transferResponse->json('data.0.kind'))->toBe('transfer');
+    expect($transferResponse->json('data.0.amount'))->toBe(300);
 });
 
 test('index redirects when the user has no wallet or categories set up', function () {

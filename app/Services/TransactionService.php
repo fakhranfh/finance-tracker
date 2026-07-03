@@ -29,7 +29,7 @@ class TransactionService
      * wallets, income/expense categories, and merged transaction/transfer
      * history, filtered by the given criteria.
      *
-     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null}  $filters
+     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null, type?: string|null}  $filters
      * @return array{wallets: Collection, expenseCategories: Collection, incomeCategories: Collection, history: Collection|null}
      */
     public function getHistoryPageData(string $userId, array $filters = []): array
@@ -80,7 +80,7 @@ class TransactionService
      * Build the sorted, display-ready transaction/transfer history rows
      * consumed by the transaction history data table.
      *
-     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null}  $filters
+     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null, type?: string|null}  $filters
      * @return array<int, array{date: string, kind: string, description: string, wallet_label: string, amount: int}>
      */
     public function getHistoryRows(string $userId, array $filters, string $sort = 'date', string $dir = 'desc'): array
@@ -111,14 +111,22 @@ class TransactionService
      * Merge the user's transactions and transfers into a single collection
      * of display-ready history entries, scoped by the given filters.
      *
-     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null}  $filters
+     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null, type?: string|null}  $filters
      */
     private function buildHistory(string $userId, array $filters): Collection
     {
+        $type = $filters['type'] ?? null;
         $scopedFilters = array_merge($filters, ['user_id' => $userId]);
+        unset($scopedFilters['type']);
 
-        $transactions = $this->get($scopedFilters, ['wallet', 'category']);
-        $transfers = $this->transferService->get($scopedFilters, ['fromWallet', 'toWallet']);
+        $transactions = $type === 'transfer'
+            ? collect()
+            : $this->get($scopedFilters, ['wallet', 'category'])
+                ->when($type, fn (Collection $transactions) => $transactions->filter(fn (Transaction $transaction) => $transaction->type->value === $type)->values());
+
+        $transfers = in_array($type, ['income', 'expense'], true)
+            ? collect()
+            : $this->transferService->get($scopedFilters, ['fromWallet', 'toWallet']);
 
         return $transactions->map(fn (Transaction $transaction) => [
             'model' => $transaction,

@@ -31,6 +31,7 @@
             dir="desc"
             :filters="[
                 ['type' => 'enum', 'key' => 'wallet_id', 'label' => 'Wallet', 'options' => $wallets->pluck('name', 'id')->all()],
+                ['type' => 'enum', 'key' => 'type', 'label' => 'Type', 'options' => ['income' => 'Income', 'expense' => 'Expense', 'transfer' => 'Transfer']],
                 ['type' => 'datetime', 'key' => 'date', 'label' => 'Date'],
             ]"
         >

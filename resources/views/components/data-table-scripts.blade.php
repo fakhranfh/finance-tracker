@@ -1,5 +1,29 @@
 @push('scripts')
 <script>
+// Render placeholder skeleton rows while a table's data is loading
+function renderSkeletonRows(tableId, rows = 5) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    const columnCount = document.querySelectorAll(`#${tableId} thead th`).length || 1;
+    if (!tbody) {
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    for (let i = 0; i < rows; i++) {
+        const row = document.createElement('tr');
+
+        for (let j = 0; j < columnCount; j++) {
+            const cell = document.createElement('td');
+            cell.className = 'px-space-lg py-space-sm';
+            cell.innerHTML = '<div class="h-4 rounded bg-outline-variant/40 animate-pulse"></div>';
+            row.appendChild(cell);
+        }
+
+        tbody.appendChild(row);
+    }
+}
+
 // Load data for table
 function loadTableData(tableId, listUrl, renderCallback) {
     const tbody = document.querySelector(`#${tableId} tbody`);
@@ -7,6 +31,8 @@ function loadTableData(tableId, listUrl, renderCallback) {
         console.error(`Table with id ${tableId} not found`);
         return;
     }
+
+    renderSkeletonRows(tableId);
 
     fetch(listUrl, { credentials: 'include' })
         .then(r => r.json())
@@ -19,14 +45,14 @@ function loadTableData(tableId, listUrl, renderCallback) {
                 });
             } else {
                 const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = `<td colspan="100%" class="px-6 py-4 text-center text-gray-500">{{ __('No data available') }}</td>`;
+                emptyRow.innerHTML = `<td colspan="100%" class="px-space-lg py-space-lg text-center font-body-md text-secondary">{{ __('No data available') }}</td>`;
                 tbody.appendChild(emptyRow);
             }
         })
         .catch(e => {
             console.error(`Failed to load data for ${tableId}:`, e);
             const errorRow = document.createElement('tr');
-            errorRow.innerHTML = `<td colspan="100%" class="px-6 py-4 text-center text-red-500">{{ __('Failed to load data') }}</td>`;
+            errorRow.innerHTML = `<td colspan="100%" class="px-space-lg py-space-lg text-center font-body-md text-error">{{ __('Failed to load data') }}</td>`;
             tbody.appendChild(errorRow);
         });
 }

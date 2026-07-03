@@ -54,6 +54,7 @@ class TransactionController extends Controller
             'wallet_id' => $request->input('wallet_id'),
             'date_from' => $request->input('date_from'),
             'date_to' => $request->input('date_to'),
+            'type' => $request->input('type'),
         ];
 
         $rows = $this->transactionService->getHistoryRows(
