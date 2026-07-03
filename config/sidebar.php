@@ -13,4 +13,10 @@ return [
         'icon' => 'account_balance_wallet',
         'active_pattern' => 'wallets.*',
     ],
+    [
+        'label' => 'Categories',
+        'route' => 'categories.index',
+        'icon' => 'category',
+        'active_pattern' => 'categories.*',
+    ],
 ];

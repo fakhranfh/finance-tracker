@@ -36,7 +36,11 @@ class CategoryPolicy
      */
     public function update(User $user, Category $category): bool
     {
-        return $user->can('update-category') && $user->id === $category->user_id;
+        if (! $user->can('update-category')) {
+            return false;
+        }
+
+        return $category->user_id === null ? $user->hasRole('admin') : $user->id === $category->user_id;
     }
 
     /**
@@ -44,7 +48,11 @@ class CategoryPolicy
      */
     public function delete(User $user, Category $category): bool
     {
-        return $user->can('delete-category') && $user->id === $category->user_id;
+        if (! $user->can('delete-category')) {
+            return false;
+        }
+
+        return $category->user_id === null ? $user->hasRole('admin') : $user->id === $category->user_id;
     }
 
     /**

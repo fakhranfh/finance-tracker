@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
 
     Route::resource('wallets', WalletController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
 
 });
 

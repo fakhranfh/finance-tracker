@@ -10,6 +10,12 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $query = Category::query();
 
+        if (! empty($filters['user_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereNull('user_id')->orWhere('user_id', $filters['user_id']);
+            });
+        }
+
         if (! empty($filters['created_from'])) {
             $query->whereDate('created_at', '>=', $filters['created_from']);
         }
