@@ -34,10 +34,10 @@ class TransactionService
      */
     public function getHistoryPageData(string $userId, array $filters = []): array
     {
-        $wallets = $this->walletService->get(['user_id' => $userId]);
-        $categories = $this->categoryService->get(['user_id' => $userId]);
-        $expenseCategories = $categories->where('type', TransactionType::Expense)->values();
-        $incomeCategories = $categories->where('type', TransactionType::Income)->values();
+        $formOptions = $this->getFormOptions($userId);
+        $wallets = $formOptions['wallets'];
+        $expenseCategories = $formOptions['expenseCategories'];
+        $incomeCategories = $formOptions['incomeCategories'];
 
         if ($wallets->isEmpty() || $expenseCategories->isEmpty() || $incomeCategories->isEmpty()) {
             return [
@@ -55,7 +55,7 @@ class TransactionService
 
         $history = $transactions->map(fn (Transaction $transaction) => [
             'model' => $transaction,
-            'kind' => $transaction->type,
+            'kind' => $transaction->type->value,
             'date' => $transaction->transaction_date,
         ])->concat($transfers->map(fn ($transfer) => [
             'model' => $transfer,
@@ -68,6 +68,24 @@ class TransactionService
             'expenseCategories' => $expenseCategories,
             'incomeCategories' => $incomeCategories,
             'history' => $history,
+        ];
+    }
+
+    /**
+     * Build the wallet and income/expense category options needed to
+     * populate the transaction form.
+     *
+     * @return array{wallets: Collection, expenseCategories: Collection, incomeCategories: Collection}
+     */
+    public function getFormOptions(string $userId): array
+    {
+        $wallets = $this->walletService->get(['user_id' => $userId]);
+        $categories = $this->categoryService->get(['user_id' => $userId]);
+
+        return [
+            'wallets' => $wallets,
+            'expenseCategories' => $categories->where('type', TransactionType::Expense)->values(),
+            'incomeCategories' => $categories->where('type', TransactionType::Income)->values(),
         ];
     }
 
