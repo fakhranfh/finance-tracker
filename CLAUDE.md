@@ -169,10 +169,11 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Timezone Handling for Datetime Input
 
-- Any datetime input coming from the client (form fields, API payloads) is in the client's local timezone and must be converted to the server/application timezone (`config('app.timezone')`) before being persisted or used in business logic.
-- Perform this conversion at the boundary — in the Form Request (via a prepared/validated accessor) or the Service layer — not scattered across controllers or views.
-- When displaying datetimes back to the user, convert from the server timezone back to the client's timezone before rendering.
-- Store the client's timezone (e.g. via a request header, user profile setting, or explicit form field) rather than assuming a fixed offset.
+- The client's IANA timezone is captured once, globally, in `resources/views/master.blade.php`: a script sets a `client_timezone` cookie via `Intl.DateTimeFormat().resolvedOptions().timeZone` on every page load. Do not add per-page/per-form hidden `client_timezone` inputs or JS — the cookie already covers every request.
+- The `client_timezone` cookie is plain text (set directly by JS, not Laravel-encrypted), so it must stay excepted in `bootstrap/app.php` via `$middleware->encryptCookies(except: ['client_timezone'])`. Never remove that exception or the cookie will fail to decrypt and silently read as null.
+- To convert a datetime input field from client-local to `config('app.timezone')` in a Form Request: `use App\Http\Requests\Concerns\ConvertsClientTimezone;` and call `$this->convertFieldsToAppTimezone(['field_name'])` inside `prepareForValidation()`. Do not re-implement the Carbon conversion logic per request class — extend the trait instead.
+- To display a stored datetime back in the client's local timezone, render it with class `js-local-date` (date only) or `js-local-datetime` (date + time) and a `data-utc="{{ $date->clone()->setTimezone('UTC')->toIso8601String() }}"` attribute. The global script in `master.blade.php` (`formatLocalDate` / `formatLocalDateTime`) converts these automatically on `DOMContentLoaded` — no per-page conversion script needed.
+- In tests, simulate a client timezone with `->withUnencryptedCookie('client_timezone', 'Asia/Jakarta')` (not `withCookie`, which encrypts the value and breaks the except-list bypass).
 
 ## Enums for Fixed-Value Columns
 
