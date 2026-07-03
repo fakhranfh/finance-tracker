@@ -10,6 +10,22 @@ class TransactionRepository implements TransactionRepositoryInterface
     {
         $query = Transaction::query();
 
+        if (! empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (! empty($filters['wallet_id'])) {
+            $query->where('wallet_id', $filters['wallet_id']);
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('transaction_date', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('transaction_date', '<=', $filters['date_to']);
+        }
+
         if (! empty($filters['created_from'])) {
             $query->whereDate('created_at', '>=', $filters['created_from']);
         }

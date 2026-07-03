@@ -19,4 +19,10 @@ return [
         'icon' => 'category',
         'active_pattern' => 'categories.*',
     ],
+    [
+        'label' => 'Transactions',
+        'route' => 'transactions.index',
+        'icon' => 'receipt_long',
+        'active_pattern' => 'transactions.*',
+    ],
 ];

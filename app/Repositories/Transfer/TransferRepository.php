@@ -10,6 +10,25 @@ class TransferRepository implements TransferRepositoryInterface
     {
         $query = Transfer::query();
 
+        if (! empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (! empty($filters['wallet_id'])) {
+            $query->where(function ($subQuery) use ($filters) {
+                $subQuery->where('from_wallet_id', $filters['wallet_id'])
+                    ->orWhere('to_wallet_id', $filters['wallet_id']);
+            });
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('transfer_date', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('transfer_date', '<=', $filters['date_to']);
+        }
+
         if (! empty($filters['created_from'])) {
             $query->whereDate('created_at', '>=', $filters['created_from']);
         }
