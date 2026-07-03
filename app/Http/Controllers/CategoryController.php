@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TransactionType;
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Models\Category;
@@ -18,8 +19,8 @@ class CategoryController extends Controller
         $this->authorize('viewAny', Category::class);
 
         $categories = $this->categoryService->get(['user_id' => auth()->id()]);
-        $expenseCategories = $categories->where('type', 'expense')->values();
-        $incomeCategories = $categories->where('type', 'income')->values();
+        $expenseCategories = $categories->where('type', TransactionType::Expense)->values();
+        $incomeCategories = $categories->where('type', TransactionType::Income)->values();
 
         return view('categories.index', compact('expenseCategories', 'incomeCategories'));
     }

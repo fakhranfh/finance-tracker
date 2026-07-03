@@ -166,3 +166,9 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ## System Design Reference
 
 - Before making architectural, database, or scaling decisions, consult `docs/SYSTEM_DESIGN.md`. It defines the tech stack, layered architecture (Controller > Service > Repository), database schema (ERD, UUID/ULID keys, money as BIGINT), scalability strategy, and security requirements for this app.
+
+## Enums for Fixed-Value Columns
+
+- When a migration defines a column with `enum()` (a fixed set of valid values, e.g. `categories.type` with `income`/`expense`), create a corresponding PHP backed enum in `app/Enums/` and cast the model attribute to it.
+- Reuse an existing enum across models when the column represents the same concept with identical values (e.g. `TransactionType` is shared by `Category` and `Transaction`).
+- After adding an enum cast, search for existing string-literal comparisons against that column (e.g. `->where('type', 'expense')`, `$model->type === 'income'`) and update them to use the enum, since comparing an enum instance to a raw string will silently evaluate to false.

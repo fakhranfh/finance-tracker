@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -18,6 +19,18 @@ class Category extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'categories';
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => TransactionType::class,
+        ];
+    }
 
     public function user(): BelongsTo
     {
