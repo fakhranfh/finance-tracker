@@ -27,7 +27,7 @@ class Transfer extends Model
     {
         return [
             'amount' => 'integer',
-            'transfer_date' => 'date',
+            'transfer_date' => 'datetime',
         ];
     }
 

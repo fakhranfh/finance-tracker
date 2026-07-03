@@ -24,7 +24,7 @@ class TransferFactory extends Factory
             'from_wallet_id' => Wallet::factory(),
             'to_wallet_id' => Wallet::factory(),
             'amount' => fake()->numberBetween(1_000, 1_000_000),
-            'transfer_date' => fake()->date(),
+            'transfer_date' => fake()->dateTime(),
             'notes' => fake()->optional()->sentence(),
         ];
     }

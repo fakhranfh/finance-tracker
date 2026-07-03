@@ -137,7 +137,7 @@
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
-            <form method="POST" action="{{ route('transactions.store') }}" class="space-y-space-md">
+            <form method="POST" action="{{ route('transactions.store') }}" class="space-y-space-md" onsubmit="return combineTransactionDateTime()">
                 @csrf
 
                 <div>
@@ -154,6 +154,7 @@
                     <label for="transaction-wallet" class="block font-label-md text-label-md text-secondary mb-space-xs" id="transaction-wallet-label">Wallet</label>
                     <select name="wallet_id" id="transaction-wallet" required
                         class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+                        <option value="" selected disabled>Select a wallet</option>
                         @foreach ($wallets as $wallet)
                             <option value="{{ $wallet->id }}">{{ $wallet->name }}</option>
                         @endforeach
@@ -164,16 +165,13 @@
                     <label for="transaction-category" class="block font-label-md text-label-md text-secondary mb-space-xs">Category</label>
                     <select name="category_id" id="transaction-category"
                         class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                        <optgroup label="Expense" id="expense-category-group">
-                            @foreach ($expenseCategories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
-                        </optgroup>
-                        <optgroup label="Income" id="income-category-group" class="hidden" style="display: none;">
-                            @foreach ($incomeCategories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
-                        </optgroup>
+                        <option value="" selected disabled>Select a category</option>
+                        @foreach ($expenseCategories as $category)
+                            <option value="{{ $category->id }}" data-type="expense">{{ $category->name }}</option>
+                        @endforeach
+                        @foreach ($incomeCategories as $category)
+                            <option value="{{ $category->id }}" data-type="income" hidden style="display: none;">{{ $category->name }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -181,6 +179,7 @@
                     <label for="transaction-to-wallet" class="block font-label-md text-label-md text-secondary mb-space-xs">Destination Wallet</label>
                     <select name="to_wallet_id" id="transaction-to-wallet"
                         class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+                        <option value="" selected disabled>Select a wallet</option>
                         @foreach ($wallets as $wallet)
                             <option value="{{ $wallet->id }}">{{ $wallet->name }}</option>
                         @endforeach
@@ -193,10 +192,19 @@
                         class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
                 </div>
 
-                <div>
-                    <label for="transaction-date" class="block font-label-md text-label-md text-secondary mb-space-xs">Date</label>
-                    <input type="date" name="transaction_date" id="transaction-date" value="{{ now()->toDateString() }}" required
-                        class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+                <div class="flex gap-space-sm">
+                    <div class="flex-1">
+                        <label for="transaction-date" class="block font-label-md text-label-md text-secondary mb-space-xs">Date</label>
+                        <input type="date" id="transaction-date" value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required
+                            onchange="capTransactionTime()"
+                            class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+                    </div>
+                    <div class="flex-1">
+                        <label for="transaction-time" class="block font-label-md text-label-md text-secondary mb-space-xs">Time</label>
+                        <input type="time" id="transaction-time" value="{{ now()->format('H:i') }}" max="{{ now()->format('H:i') }}" required
+                            class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+                    </div>
+                    <input type="hidden" name="transaction_date" id="transaction-date-time">
                 </div>
 
                 <div>
@@ -225,10 +233,13 @@
             const walletLabel = document.getElementById('transaction-wallet-label');
             const categoryField = document.getElementById('transaction-category-field');
             const toWalletField = document.getElementById('transaction-to-wallet-field');
+            const walletSelect = document.getElementById('transaction-wallet');
             const categorySelect = document.getElementById('transaction-category');
             const toWalletSelect = document.getElementById('transaction-to-wallet');
-            const expenseGroup = document.getElementById('expense-category-group');
-            const incomeGroup = document.getElementById('income-category-group');
+            const categoryOptions = categorySelect.querySelectorAll('option[data-type]');
+
+            walletSelect.value = '';
+            toWalletSelect.value = '';
 
             if (type === 'transfer') {
                 walletLabel.textContent = 'Source Wallet';
@@ -243,11 +254,46 @@
                 categorySelect.disabled = false;
                 toWalletSelect.disabled = true;
 
-                expenseGroup.style.display = type === 'expense' ? '' : 'none';
-                incomeGroup.style.display = type === 'income' ? '' : 'none';
+                categoryOptions.forEach((option) => {
+                    const isVisible = option.dataset.type === type;
+                    option.hidden = !isVisible;
+                    option.classList.toggle('hidden', !isVisible);
+                    option.style.display = isVisible ? '' : 'none';
+                });
+
+                categorySelect.value = '';
             }
         }
 
+        function capTransactionTime() {
+            const dateInput = document.getElementById('transaction-date');
+            const timeInput = document.getElementById('transaction-time');
+
+            const today = new Date().toISOString().slice(0, 10);
+            const nowTime = new Date().toTimeString().slice(0, 5);
+
+            if (dateInput.value === today) {
+                timeInput.max = nowTime;
+                if (timeInput.value > nowTime) {
+                    timeInput.value = nowTime;
+                }
+            } else {
+                timeInput.removeAttribute('max');
+            }
+        }
+
+        function combineTransactionDateTime() {
+            const dateInput = document.getElementById('transaction-date');
+            const timeInput = document.getElementById('transaction-time');
+            const combinedInput = document.getElementById('transaction-date-time');
+
+            capTransactionTime();
+            combinedInput.value = `${dateInput.value} ${timeInput.value}`;
+
+            return true;
+        }
+
         document.addEventListener('DOMContentLoaded', toggleTransactionType);
+        document.addEventListener('DOMContentLoaded', capTransactionTime);
     </script>
 @endsection

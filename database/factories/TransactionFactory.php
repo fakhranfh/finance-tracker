@@ -26,7 +26,7 @@ class TransactionFactory extends Factory
             'category_id' => Category::factory(),
             'amount' => fake()->numberBetween(1_000, 1_000_000),
             'type' => fake()->randomElement(['income', 'expense']),
-            'transaction_date' => fake()->date(),
+            'transaction_date' => fake()->dateTime(),
             'notes' => fake()->optional()->sentence(),
         ];
     }

@@ -24,7 +24,7 @@ class StoreTransactionRequest extends FormRequest
             'category_id' => ['required_if:type,income,expense', 'nullable', 'uuid', Rule::exists('categories', 'id')->where(fn ($query) => $query->where('user_id', $this->user()->id)->orWhereNull('user_id'))],
             'to_wallet_id' => ['required_if:type,transfer', 'nullable', 'uuid', 'different:wallet_id', Rule::exists('wallets', 'id')->where('user_id', $this->user()->id)],
             'amount' => ['required', 'integer', 'min:1'],
-            'transaction_date' => ['required', 'date'],
+            'transaction_date' => ['required', 'date', 'before_or_equal:now'],
             'notes' => ['nullable', 'string'],
         ];
     }
@@ -40,6 +40,7 @@ class StoreTransactionRequest extends FormRequest
             'amount.required' => 'Amount is required',
             'amount.min' => 'Amount must be greater than zero',
             'transaction_date.required' => 'Date is required',
+            'transaction_date.before_or_equal' => 'Date cannot be in the future',
         ];
     }
 }

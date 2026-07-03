@@ -106,6 +106,38 @@ test('user can transfer funds between wallets', function () {
     expect($toWallet->fresh()->balance)->toBe(600);
 });
 
+test('transaction request fails validation when the date is in the future', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
+    $category = Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    $response = $this->actingAs($this->user)->post(route('transactions.store'), [
+        'type' => 'income',
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'amount' => 500,
+        'transaction_date' => now()->addDay()->toDateTimeString(),
+    ]);
+
+    $response->assertSessionHasErrors('transaction_date');
+    expect($wallet->fresh()->balance)->toBe(1000);
+});
+
+test('transaction request fails validation when the time is in the future on today\'s date', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
+    $category = Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    $response = $this->actingAs($this->user)->post(route('transactions.store'), [
+        'type' => 'income',
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'amount' => 500,
+        'transaction_date' => now()->addHour()->toDateTimeString(),
+    ]);
+
+    $response->assertSessionHasErrors('transaction_date');
+    expect($wallet->fresh()->balance)->toBe(1000);
+});
+
 test('expense request fails validation when balance is insufficient', function () {
     $wallet = Wallet::factory()->for($this->user)->create(['balance' => 100]);
     $category = Category::factory()->for($this->user)->create(['type' => 'expense']);
