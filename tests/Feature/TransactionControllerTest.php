@@ -11,7 +11,19 @@ beforeEach(function () {
     $this->user = User::factory()->create()->assignRole('user');
 });
 
-test('index displays transactions and transfers chronologically', function () {
+test('index renders the transaction history table shell', function () {
+    Wallet::factory()->for($this->user)->create(['name' => 'Cash Wallet']);
+    Category::factory()->for($this->user)->create(['type' => 'expense']);
+    Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    $response = $this->actingAs($this->user)->get(route('transactions.index'));
+
+    $response->assertOk()
+        ->assertSee('Transaction History')
+        ->assertSee('Cash Wallet');
+});
+
+test('data endpoint returns transactions and transfers sorted by date descending by default', function () {
     $wallet = Wallet::factory()->for($this->user)->create(['name' => 'Cash Wallet']);
     $category = Category::factory()->for($this->user)->create(['name' => 'Groceries', 'type' => 'expense']);
     Category::factory()->for($this->user)->create(['type' => 'income']);
@@ -22,24 +34,80 @@ test('index displays transactions and transfers chronologically', function () {
         'category_id' => $category->id,
         'type' => 'expense',
         'amount' => 50_000,
+        'notes' => null,
         'transaction_date' => now()->toDateString(),
     ]);
 
-    $response = $this->actingAs($this->user)->get(route('transactions.index'));
+    $response = $this->actingAs($this->user)->getJson(route('transactions.data'));
 
-    $response->assertOk()
-        ->assertSee('Cash Wallet')
-        ->assertSee('Groceries');
+    $response->assertOk();
+    expect($response->json('data.0.description'))->toBe('Groceries');
+    expect($response->json('data.0.wallet_label'))->toBe('Cash Wallet');
+    expect($response->json('data.0.amount'))->toBe(50_000);
 });
 
-test('index shows empty state when the user has no history', function () {
+test('data endpoint returns an empty list when the user has no history', function () {
     Wallet::factory()->for($this->user)->create();
     Category::factory()->for($this->user)->create(['type' => 'income']);
     Category::factory()->for($this->user)->create(['type' => 'expense']);
 
-    $response = $this->actingAs($this->user)->get(route('transactions.index'));
+    $response = $this->actingAs($this->user)->getJson(route('transactions.data'));
 
-    $response->assertOk()->assertSee('No transactions yet');
+    $response->assertOk()->assertJson(['data' => []]);
+});
+
+test('data endpoint sorts by amount ascending when requested', function () {
+    $wallet = Wallet::factory()->for($this->user)->create();
+    $category = Category::factory()->for($this->user)->create(['type' => 'expense']);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'type' => 'expense',
+        'amount' => 500,
+    ]);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'type' => 'expense',
+        'amount' => 100,
+    ]);
+
+    $response = $this->actingAs($this->user)->getJson(route('transactions.data', ['sort' => 'amount', 'dir' => 'asc']));
+
+    $response->assertOk();
+    expect($response->json('data.*.amount'))->toBe([100, 500]);
+});
+
+test('data endpoint filters by wallet', function () {
+    $matchingWallet = Wallet::factory()->for($this->user)->create();
+    $otherWallet = Wallet::factory()->for($this->user)->create();
+    $category = Category::factory()->for($this->user)->create(['type' => 'expense']);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $matchingWallet->id,
+        'category_id' => $category->id,
+        'type' => 'expense',
+        'amount' => 500,
+    ]);
+
+    Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $otherWallet->id,
+        'category_id' => $category->id,
+        'type' => 'expense',
+        'amount' => 100,
+    ]);
+
+    $response = $this->actingAs($this->user)->getJson(route('transactions.data', ['wallet_id' => $matchingWallet->id]));
+
+    $response->assertOk();
+    expect($response->json('data'))->toHaveCount(1);
+    expect($response->json('data.0.amount'))->toBe(500);
 });
 
 test('index redirects when the user has no wallet or categories set up', function () {
@@ -175,6 +243,6 @@ test('expense request fails validation when balance is insufficient', function (
         'transaction_date' => now()->toDateString(),
     ]);
 
-    $response->assertRedirect(route('transactions.index'))->assertSessionHasErrors('amount');
+    $response->assertRedirect(route('transactions.create'))->assertSessionHasErrors('amount');
     expect($wallet->fresh()->balance)->toBe(100);
 });

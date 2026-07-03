@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
 
     Route::resource('transactions', TransactionController::class)->only(['index', 'create', 'store']);
+    Route::get('/transactions-data', [TransactionController::class, 'data'])->name('transactions.data');
 
 });
 

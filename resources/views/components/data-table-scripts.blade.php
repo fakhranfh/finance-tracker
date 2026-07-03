@@ -31,7 +31,8 @@ function loadTableData(tableId, listUrl, renderCallback) {
         });
 }
 
-// Build URL with filter query params collected from data-filter-table inputs
+// Build URL with filter query params collected from data-filter-table inputs,
+// plus the current sort column/direction stored on the table itself
 function buildFilterUrl(tableId) {
     const table = document.getElementById(tableId);
     const baseUrl = table ? table.dataset.listUrl : '#';
@@ -44,8 +45,38 @@ function buildFilterUrl(tableId) {
         }
     });
 
+    if (table?.dataset.sort) {
+        params.set('sort', table.dataset.sort);
+        params.set('dir', table.dataset.dir || 'desc');
+    }
+
     const qs = params.toString();
     return baseUrl + (qs ? '?' + qs : '');
+}
+
+// Update a table's header sort icons to reflect its current sort column/direction
+function updateSortIcons(tableId, column, dir) {
+    document.querySelectorAll(`#${tableId} [data-sort-icon]`).forEach((icon) => {
+        icon.textContent = icon.dataset.sortIcon === column
+            ? (dir === 'asc' ? 'arrow_upward' : 'arrow_downward')
+            : '';
+    });
+}
+
+// Toggle the sort column/direction for a table, update its header icons, and reload
+function toggleSort(tableId, column) {
+    const table = document.getElementById(tableId);
+    if (!table) {
+        return;
+    }
+
+    const dir = table.dataset.sort === column && table.dataset.dir === 'asc' ? 'desc' : 'asc';
+
+    table.dataset.sort = column;
+    table.dataset.dir = dir;
+
+    updateSortIcons(tableId, column, dir);
+    applyFilters(tableId);
 }
 
 function applyFilters(tableId) {
@@ -76,6 +107,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const listUrl = table.dataset.listUrl;
 
         if (tableId && listUrl) {
+            if (table.dataset.sort) {
+                updateSortIcons(tableId, table.dataset.sort, table.dataset.dir || 'desc');
+            }
+
             // Call page-specific function if it exists
             const functionName = 'load' + tableId.charAt(0).toUpperCase() + tableId.slice(1);
             if (typeof window[functionName] === 'function') {

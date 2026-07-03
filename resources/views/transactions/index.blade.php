@@ -23,108 +23,70 @@
             </a>
         </div>
 
-        <!-- Filters -->
-        <div class="bg-surface border border-outline-variant rounded-lg p-space-lg">
-            <form method="GET" action="{{ route('transactions.index') }}" class="flex flex-wrap items-end gap-space-md">
-                <div>
-                    <label for="filter-wallet" class="block font-label-md text-label-md text-secondary mb-space-xs">Wallet</label>
-                    <select name="wallet_id" id="filter-wallet"
-                        class="rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                        <option value="">All Wallets</option>
-                        @foreach ($wallets as $wallet)
-                            <option value="{{ $wallet->id }}" @selected(($filters['wallet_id'] ?? null) === $wallet->id)>{{ $wallet->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label for="filter-date-from" class="block font-label-md text-label-md text-secondary mb-space-xs">From</label>
-                    <input type="date" name="date_from" id="filter-date-from" value="{{ $filters['date_from'] ?? '' }}"
-                        class="rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                </div>
-                <div>
-                    <label for="filter-date-to" class="block font-label-md text-label-md text-secondary mb-space-xs">To</label>
-                    <input type="date" name="date_to" id="filter-date-to" value="{{ $filters['date_to'] ?? '' }}"
-                        class="rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                </div>
-                <div class="flex gap-space-sm">
-                    <button type="submit"
-                        class="px-space-lg py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity">
-                        Filter
-                    </button>
-                    <a href="{{ route('transactions.index') }}"
-                        class="px-space-lg py-space-sm rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-lowest transition-colors">
-                        Reset
-                    </a>
-                </div>
-            </form>
-        </div>
-
         <!-- History -->
-        @if ($history->isEmpty())
-            <div class="bg-surface border border-outline-variant rounded-lg p-space-xl text-center">
-                <span class="material-symbols-outlined text-secondary text-[48px]">receipt_long</span>
-                <p class="font-headline-sm text-headline-sm text-on-surface mt-space-md">No transactions yet</p>
-                <p class="font-body-md text-secondary mt-space-xs">Record your first income, expense, or transfer to see it here.</p>
-            </div>
-        @else
-            <div class="bg-surface border border-outline-variant rounded-lg overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-surface-container-lowest border-b border-outline-variant">
-                        <tr>
-                            <th class="px-space-lg py-space-sm font-label-md text-label-md text-secondary uppercase">Date</th>
-                            <th class="px-space-lg py-space-sm font-label-md text-label-md text-secondary uppercase">Type</th>
-                            <th class="px-space-lg py-space-sm font-label-md text-label-md text-secondary uppercase">Description</th>
-                            <th class="px-space-lg py-space-sm font-label-md text-label-md text-secondary uppercase">Wallet</th>
-                            <th class="px-space-lg py-space-sm font-label-md text-label-md text-secondary uppercase text-right">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-outline-variant">
-                        @foreach ($history as $entry)
-                            @php
-                                $kind = $entry['kind'];
-                                $model = $entry['model'];
-
-                                $badge = match ($kind) {
-                                    'income' => ['label' => 'Income', 'class' => 'bg-success-container text-on-success-container'],
-                                    'expense' => ['label' => 'Expense', 'class' => 'bg-error-container text-on-error-container'],
-                                    default => ['label' => 'Transfer', 'class' => 'bg-secondary-container text-on-secondary-container'],
-                                };
-
-                                $amountClass = match ($kind) {
-                                    'income' => 'text-success',
-                                    'expense' => 'text-error',
-                                    default => 'text-secondary',
-                                };
-
-                                $amountPrefix = match ($kind) {
-                                    'income' => '+',
-                                    'expense' => '-',
-                                    default => '',
-                                };
-
-                                $description = $kind === 'transfer'
-                                    ? ($model->notes ?: 'Wallet transfer')
-                                    : ($model->notes ?: $model->category->name);
-
-                                $walletLabel = $kind === 'transfer'
-                                    ? $model->fromWallet->name.' → '.$model->toWallet->name
-                                    : $model->wallet->name;
-                            @endphp
-                            <tr>
-                                <td class="px-space-lg py-space-sm font-body-md text-on-surface whitespace-nowrap js-local-datetime" data-utc="{{ $entry['date']->clone()->setTimezone('UTC')->toIso8601String() }}">{{ $entry['date']->format('d M Y H:i') }}</td>
-                                <td class="px-space-lg py-space-sm">
-                                    <span class="inline-flex px-space-sm py-[2px] rounded-full font-label-sm text-label-sm uppercase {{ $badge['class'] }}">{{ $badge['label'] }}</span>
-                                </td>
-                                <td class="px-space-lg py-space-sm font-body-md text-on-surface">{{ $description }}</td>
-                                <td class="px-space-lg py-space-sm font-body-md text-secondary">{{ $walletLabel }}</td>
-                                <td class="px-space-lg py-space-sm font-label-md text-label-md text-right {{ $amountClass }}">
-                                    {{ $amountPrefix }}Rp {{ number_format($model->amount, 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
+        <x-data-table
+            table-id="transactionsTable"
+            :list-url="route('transactions.data')"
+            sort="date"
+            dir="desc"
+            :filters="[
+                ['type' => 'enum', 'key' => 'wallet_id', 'label' => 'Wallet', 'options' => $wallets->pluck('name', 'id')->all()],
+                ['type' => 'datetime', 'key' => 'date', 'label' => 'Date'],
+            ]"
+        >
+            <x-slot:headers>
+                <x-sortable-th table-id="transactionsTable" column="date" label="Date" />
+                <x-sortable-th table-id="transactionsTable" column="type" label="Type" />
+                <x-sortable-th table-id="transactionsTable" column="description" label="Description" />
+                <x-sortable-th table-id="transactionsTable" column="wallet" label="Wallet" />
+                <x-sortable-th table-id="transactionsTable" column="amount" label="Amount" align="right" />
+            </x-slot:headers>
+        </x-data-table>
     </div>
+
+    <x-data-table-scripts />
+
+    <script>
+        const transactionBadges = {
+            income: { label: 'Income', class: 'bg-success-container text-on-success-container', amountClass: 'text-success', amountPrefix: '+' },
+            expense: { label: 'Expense', class: 'bg-error-container text-on-error-container', amountClass: 'text-error', amountPrefix: '-' },
+            transfer: { label: 'Transfer', class: 'bg-secondary-container text-on-secondary-container', amountClass: 'text-secondary', amountPrefix: '' },
+        };
+
+        function renderTransactionRow(item) {
+            const badge = transactionBadges[item.kind] ?? transactionBadges.transfer;
+            const row = document.createElement('tr');
+
+            const dateCell = document.createElement('td');
+            dateCell.className = 'px-space-lg py-space-sm font-body-md text-on-surface whitespace-nowrap';
+            dateCell.textContent = formatLocalDateTime(item.date);
+            row.appendChild(dateCell);
+
+            const typeCell = document.createElement('td');
+            typeCell.className = 'px-space-lg py-space-sm';
+            typeCell.innerHTML = `<span class="inline-flex px-space-sm py-[2px] rounded-full font-label-sm text-label-sm uppercase ${badge.class}">${badge.label}</span>`;
+            row.appendChild(typeCell);
+
+            const descriptionCell = document.createElement('td');
+            descriptionCell.className = 'px-space-lg py-space-sm font-body-md text-on-surface';
+            descriptionCell.textContent = item.description;
+            row.appendChild(descriptionCell);
+
+            const walletCell = document.createElement('td');
+            walletCell.className = 'px-space-lg py-space-sm font-body-md text-secondary';
+            walletCell.textContent = item.wallet_label;
+            row.appendChild(walletCell);
+
+            const amountCell = document.createElement('td');
+            amountCell.className = `px-space-lg py-space-sm font-label-md text-label-md text-right ${badge.amountClass}`;
+            amountCell.textContent = `${badge.amountPrefix}Rp ${new Intl.NumberFormat('id-ID').format(item.amount)}`;
+            row.appendChild(amountCell);
+
+            return row;
+        }
+
+        function loadTransactionsTable() {
+            loadTableData('transactionsTable', buildFilterUrl('transactionsTable'), renderTransactionRow);
+        }
+    </script>
 @endsection

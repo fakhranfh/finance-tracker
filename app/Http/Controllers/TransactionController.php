@@ -7,6 +7,7 @@ use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\Transaction;
 use App\Models\Transfer;
 use App\Services\TransactionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,6 +43,27 @@ class TransactionController extends Controller
             'incomeCategories' => $pageData['incomeCategories'],
             'filters' => array_merge($filters, ['user_id' => auth()->id()]),
         ]);
+    }
+
+    public function data(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Transaction::class);
+        $this->authorize('viewAny', Transfer::class);
+
+        $filters = [
+            'wallet_id' => $request->input('wallet_id'),
+            'date_from' => $request->input('date_from'),
+            'date_to' => $request->input('date_to'),
+        ];
+
+        $rows = $this->transactionService->getHistoryRows(
+            auth()->id(),
+            $filters,
+            $request->input('sort', 'date'),
+            $request->input('dir', 'desc'),
+        );
+
+        return response()->json(['data' => $rows]);
     }
 
     public function create(): View|RedirectResponse

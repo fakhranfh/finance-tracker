@@ -48,20 +48,7 @@ class TransactionService
             ];
         }
 
-        $scopedFilters = array_merge($filters, ['user_id' => $userId]);
-
-        $transactions = $this->get($scopedFilters, ['wallet', 'category']);
-        $transfers = $this->transferService->get($scopedFilters, ['fromWallet', 'toWallet']);
-
-        $history = $transactions->map(fn (Transaction $transaction) => [
-            'model' => $transaction,
-            'kind' => $transaction->type->value,
-            'date' => $transaction->transaction_date,
-        ])->concat($transfers->map(fn ($transfer) => [
-            'model' => $transfer,
-            'kind' => 'transfer',
-            'date' => $transfer->transfer_date,
-        ]))->sortByDesc(fn (array $entry) => $entry['date'])->values();
+        $history = $this->buildHistory($userId, $filters)->sortByDesc(fn (array $entry) => $entry['date'])->values();
 
         return [
             'wallets' => $wallets,
@@ -87,6 +74,67 @@ class TransactionService
             'expenseCategories' => $categories->where('type', TransactionType::Expense)->values(),
             'incomeCategories' => $categories->where('type', TransactionType::Income)->values(),
         ];
+    }
+
+    /**
+     * Build the sorted, display-ready transaction/transfer history rows
+     * consumed by the transaction history data table.
+     *
+     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null}  $filters
+     * @return array<int, array{date: string, kind: string, description: string, wallet_label: string, amount: int}>
+     */
+    public function getHistoryRows(string $userId, array $filters, string $sort = 'date', string $dir = 'desc'): array
+    {
+        $history = $this->buildHistory($userId, $filters);
+
+        $sortKey = match ($sort) {
+            'amount' => fn (array $entry) => $entry['amount'],
+            'type' => fn (array $entry) => $entry['kind'],
+            'description' => fn (array $entry) => mb_strtolower($entry['description']),
+            'wallet' => fn (array $entry) => mb_strtolower($entry['wallet_label']),
+            default => fn (array $entry) => $entry['date'],
+        };
+
+        return $history->sortBy($sortKey, SORT_REGULAR, $dir === 'desc')
+            ->values()
+            ->map(fn (array $entry) => [
+                'date' => $entry['date']->clone()->setTimezone('UTC')->toIso8601String(),
+                'kind' => $entry['kind'],
+                'description' => $entry['description'],
+                'wallet_label' => $entry['wallet_label'],
+                'amount' => $entry['amount'],
+            ])
+            ->all();
+    }
+
+    /**
+     * Merge the user's transactions and transfers into a single collection
+     * of display-ready history entries, scoped by the given filters.
+     *
+     * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null}  $filters
+     */
+    private function buildHistory(string $userId, array $filters): Collection
+    {
+        $scopedFilters = array_merge($filters, ['user_id' => $userId]);
+
+        $transactions = $this->get($scopedFilters, ['wallet', 'category']);
+        $transfers = $this->transferService->get($scopedFilters, ['fromWallet', 'toWallet']);
+
+        return $transactions->map(fn (Transaction $transaction) => [
+            'model' => $transaction,
+            'kind' => $transaction->type->value,
+            'date' => $transaction->transaction_date,
+            'description' => $transaction->notes ?: $transaction->category->name,
+            'wallet_label' => $transaction->wallet->name,
+            'amount' => $transaction->amount,
+        ])->concat($transfers->map(fn (Transfer $transfer) => [
+            'model' => $transfer,
+            'kind' => 'transfer',
+            'date' => $transfer->transfer_date,
+            'description' => $transfer->notes ?: 'Wallet transfer',
+            'wallet_label' => $transfer->fromWallet->name.' → '.$transfer->toWallet->name,
+            'amount' => $transfer->amount,
+        ]));
     }
 
     /**
