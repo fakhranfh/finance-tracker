@@ -167,6 +167,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 - Before making architectural, database, or scaling decisions, consult `docs/SYSTEM_DESIGN.md`. It defines the tech stack, layered architecture (Controller > Service > Repository), database schema (ERD, UUID/ULID keys, money as BIGINT), scalability strategy, and security requirements for this app.
 
+## Timezone Handling for Datetime Input
+
+- Any datetime input coming from the client (form fields, API payloads) is in the client's local timezone and must be converted to the server/application timezone (`config('app.timezone')`) before being persisted or used in business logic.
+- Perform this conversion at the boundary — in the Form Request (via a prepared/validated accessor) or the Service layer — not scattered across controllers or views.
+- When displaying datetimes back to the user, convert from the server timezone back to the client's timezone before rendering.
+- Store the client's timezone (e.g. via a request header, user profile setting, or explicit form field) rather than assuming a fixed offset.
+
 ## Enums for Fixed-Value Columns
 
 - When a migration defines a column with `enum()` (a fixed set of valid values, e.g. `categories.type` with `income`/`expense`), create a corresponding PHP backed enum in `app/Enums/` and cast the model attribute to it.
