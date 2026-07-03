@@ -291,3 +291,43 @@ test('expense request fails validation when balance is insufficient', function (
     $response->assertRedirect(route('transactions.create'))->assertSessionHasErrors('amount');
     expect($wallet->fresh()->balance)->toBe(100);
 });
+
+test('deleting an expense transaction restores the wallet balance', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 700]);
+    $category = Category::factory()->for($this->user)->create(['type' => 'expense']);
+
+    $transaction = Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'type' => 'expense',
+        'amount' => 300,
+    ]);
+
+    $response = $this->actingAs($this->user)->deleteJson(route('transactions.destroy', $transaction));
+
+    $response->assertOk();
+    expect($wallet->fresh()->balance)->toBe(1000);
+    expect($transaction->fresh()->trashed())->toBeTrue();
+});
+
+test('deleting an income transaction cannot be triggered by another user', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
+    $category = Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    $transaction = Transaction::factory()->create([
+        'user_id' => $this->user->id,
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'type' => 'income',
+        'amount' => 500,
+    ]);
+
+    $otherUser = User::factory()->create()->assignRole('user');
+
+    $response = $this->actingAs($otherUser)->deleteJson(route('transactions.destroy', $transaction));
+
+    $response->assertForbidden();
+    expect($wallet->fresh()->balance)->toBe(1000);
+    expect($transaction->fresh()->trashed())->toBeFalse();
+});

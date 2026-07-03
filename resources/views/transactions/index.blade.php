@@ -41,6 +41,7 @@
                 <x-sortable-th table-id="transactionsTable" column="description" label="Description" />
                 <x-sortable-th table-id="transactionsTable" column="wallet" label="Wallet" />
                 <x-sortable-th table-id="transactionsTable" column="amount" label="Amount" align="right" />
+                <th class="px-space-lg py-space-sm font-label-md text-label-md text-secondary uppercase text-right">Actions</th>
             </x-slot:headers>
         </x-data-table>
     </div>
@@ -83,7 +84,43 @@
             amountCell.textContent = `${badge.amountPrefix}Rp ${new Intl.NumberFormat('id-ID').format(item.amount)}`;
             row.appendChild(amountCell);
 
+            const actionsCell = document.createElement('td');
+            actionsCell.className = 'px-space-lg py-space-sm text-right';
+            actionsCell.innerHTML = `
+                <button type="button" title="Delete"
+                    onclick="deleteTransactionEntry('${item.kind}', '${item.id}')"
+                    class="p-space-xs rounded-md text-secondary hover:text-error hover:bg-surface-container-lowest transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+            `;
+            row.appendChild(actionsCell);
+
             return row;
+        }
+
+        const transactionDeleteBaseUrl = "{{ url('/transactions') }}";
+        const transferDeleteBaseUrl = "{{ url('/transfers') }}";
+
+        function deleteTransactionEntry(kind, id) {
+            if (!confirm('Delete this entry? This cannot be undone and will reverse the wallet balance.')) {
+                return;
+            }
+
+            const baseUrl = kind === 'transfer' ? transferDeleteBaseUrl : transactionDeleteBaseUrl;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            fetch(`${baseUrl}/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+            })
+                .then(async (response) => {
+                    const body = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(body.message || 'Failed to delete entry.');
+                    }
+                    loadTransactionsTable();
+                })
+                .catch((error) => alert(error.message));
         }
 
         function loadTransactionsTable() {

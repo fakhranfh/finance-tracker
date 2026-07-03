@@ -81,7 +81,7 @@ class TransactionService
      * consumed by the transaction history data table.
      *
      * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null, type?: string|null}  $filters
-     * @return array<int, array{date: string, kind: string, description: string, wallet_label: string, amount: int}>
+     * @return array<int, array{id: string, date: string, kind: string, description: string, wallet_label: string, amount: int}>
      */
     public function getHistoryRows(string $userId, array $filters, string $sort = 'date', string $dir = 'desc'): array
     {
@@ -98,6 +98,7 @@ class TransactionService
         return $history->sortBy($sortKey, SORT_REGULAR, $dir === 'desc')
             ->values()
             ->map(fn (array $entry) => [
+                'id' => $entry['model']->id,
                 'date' => $entry['date']->clone()->setTimezone('UTC')->toIso8601String(),
                 'kind' => $entry['kind'],
                 'description' => $entry['description'],
@@ -196,6 +197,36 @@ class TransactionService
             $wallet->save();
 
             return $this->transactionRepository->create($data);
+        });
+    }
+
+    /**
+     * Cancel (soft delete) an income/expense transaction, reversing its
+     * effect on the owning wallet's balance so the deletion never leaves
+     * the balance out of sync with the visible history.
+     *
+     * @throws InsufficientBalanceException
+     */
+    public function cancel(string $transactionId): Transaction
+    {
+        return DB::transaction(function () use ($transactionId) {
+            $transaction = Transaction::lockForUpdate()->findOrFail($transactionId);
+            $wallet = Wallet::lockForUpdate()->findOrFail($transaction->wallet_id);
+
+            if ($transaction->type === TransactionType::Expense) {
+                $wallet->balance += $transaction->amount;
+            } else {
+                if ($wallet->balance < $transaction->amount) {
+                    throw new InsufficientBalanceException;
+                }
+
+                $wallet->balance -= $transaction->amount;
+            }
+
+            $wallet->save();
+            $transaction->delete();
+
+            return $transaction;
         });
     }
 

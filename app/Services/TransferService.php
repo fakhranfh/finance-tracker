@@ -46,6 +46,38 @@ class TransferService
         });
     }
 
+    /**
+     * Cancel (soft delete) a transfer, reversing its effect on both
+     * wallets: the source wallet gets the amount back, the destination
+     * wallet gives it up.
+     *
+     * @throws InsufficientBalanceException
+     */
+    public function cancelTransfer(string $transferId): Transfer
+    {
+        return DB::transaction(function () use ($transferId) {
+            $transfer = Transfer::lockForUpdate()->findOrFail($transferId);
+
+            $walletIds = [$transfer->from_wallet_id, $transfer->to_wallet_id];
+            sort($walletIds);
+
+            $wallets = Wallet::whereIn('id', $walletIds)->lockForUpdate()->get()->keyBy('id');
+            $fromWallet = $wallets->get($transfer->from_wallet_id);
+            $toWallet = $wallets->get($transfer->to_wallet_id);
+
+            if ($toWallet->balance < $transfer->amount) {
+                throw new InsufficientBalanceException;
+            }
+
+            $fromWallet->increment('balance', $transfer->amount);
+            $toWallet->decrement('balance', $transfer->amount);
+
+            $transfer->delete();
+
+            return $transfer;
+        });
+    }
+
     public function get(array $filters = [], array $with = [])
     {
         return $this->transferRepository->get($filters, $with);

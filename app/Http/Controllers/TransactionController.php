@@ -95,4 +95,17 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.index')->with('success', 'Transaction recorded successfully.');
     }
+
+    public function destroy(Transaction $transaction): JsonResponse
+    {
+        $this->authorize('delete', $transaction);
+
+        try {
+            $this->transactionService->cancel($transaction->id);
+        } catch (InsufficientBalanceException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['message' => 'Transaction cancelled and wallet balance restored.']);
+    }
 }
