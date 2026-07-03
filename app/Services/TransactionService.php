@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TransactionType;
 use App\Exceptions\InsufficientBalanceException;
 use App\Models\Transaction;
+use App\Models\Transfer;
 use App\Models\Wallet;
 use App\Repositories\Transaction\TransactionRepositoryInterface;
 use Illuminate\Support\Collection;
@@ -68,6 +69,34 @@ class TransactionService
             'incomeCategories' => $incomeCategories,
             'history' => $history,
         ];
+    }
+
+    /**
+     * Record a validated transaction form submission, dispatching to a
+     * transfer or an income/expense record depending on its type.
+     *
+     * @param  array{type: string, wallet_id: string, to_wallet_id?: string, category_id?: string, amount: int, transaction_date: string, notes?: string|null}  $data
+     *
+     * @throws InsufficientBalanceException
+     */
+    public function storeFromRequest(array $data, string $userId): Transaction|Transfer
+    {
+        $data['user_id'] = $userId;
+
+        if ($data['type'] === 'transfer') {
+            return $this->transferService->transfer([
+                'user_id' => $data['user_id'],
+                'from_wallet_id' => $data['wallet_id'],
+                'to_wallet_id' => $data['to_wallet_id'],
+                'amount' => $data['amount'],
+                'transfer_date' => $data['transaction_date'],
+                'notes' => $data['notes'] ?? null,
+            ]);
+        }
+
+        unset($data['to_wallet_id']);
+
+        return $this->record($data);
     }
 
     /**

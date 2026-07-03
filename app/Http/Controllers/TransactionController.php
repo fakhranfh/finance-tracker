@@ -7,7 +7,6 @@ use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\Transaction;
 use App\Models\Transfer;
 use App\Services\TransactionService;
-use App\Services\TransferService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,7 +15,6 @@ class TransactionController extends Controller
 {
     public function __construct(
         private TransactionService $transactionService,
-        private TransferService $transferService,
     ) {}
 
     public function index(Request $request): View|RedirectResponse
@@ -48,24 +46,8 @@ class TransactionController extends Controller
 
     public function store(StoreTransactionRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $data['user_id'] = auth()->id();
-
         try {
-            if ($data['type'] === 'transfer') {
-                $this->transferService->transfer([
-                    'user_id' => $data['user_id'],
-                    'from_wallet_id' => $data['wallet_id'],
-                    'to_wallet_id' => $data['to_wallet_id'],
-                    'amount' => $data['amount'],
-                    'transfer_date' => $data['transaction_date'],
-                    'notes' => $data['notes'] ?? null,
-                ]);
-            } else {
-                unset($data['to_wallet_id']);
-
-                $this->transactionService->record($data);
-            }
+            $this->transactionService->storeFromRequest($request->validated(), auth()->id());
         } catch (InsufficientBalanceException $e) {
             return redirect()->route('transactions.index')->withErrors(['amount' => $e->getMessage()]);
         }
