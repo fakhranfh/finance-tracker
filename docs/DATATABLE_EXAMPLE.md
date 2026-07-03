@@ -1,16 +1,16 @@
 # DataTables Integration - Quick Start Example
 
-Contoh praktis implementasi DataTables dengan CRUD Generator.
+A practical example of implementing DataTables with the CRUD Generator.
 
 ## Step-by-Step Implementation
 
-### 1. Generate CRUD dengan make:rsc
+### 1. Generate CRUD with make:rsc
 
 ```bash
 php artisan make:rsc Product --label="Product"
 ```
 
-Ketika diminta konfigurasi kolom, masukkan:
+When prompted for column configuration, enter:
 
 ```
 Column name: title
@@ -41,9 +41,9 @@ Confirm: Yes
 Done
 ```
 
-### 2. Hasil Generator
+### 2. Generator Result
 
-Command akan membuat struktur berikut:
+The command will create the following structure:
 
 ```
 app/
@@ -70,7 +70,7 @@ resources/views/app/product/
 └── show.blade.php
 ```
 
-### 3. Routes yang Dibuat
+### 3. Routes Created
 
 Generated routes:
 
@@ -85,12 +85,12 @@ PUT/PATCH /product/{id}         product.update     (update item)
 DELETE    /product/{id}         product.destroy    (delete item)
 ```
 
-### 4. DataTables di Index Page
+### 4. DataTables on the Index Page
 
-File `resources/views/app/product/index.blade.php` sudah otomatis menggunakan DataTables dengan:
+The file `resources/views/app/product/index.blade.php` already automatically uses DataTables with:
 
 **Features:**
-- ✅ AJAX loading data dari `/product/data/list`
+- ✅ AJAX loading data from `/product/data/list`
 - ✅ Sorting by clicking column headers
 - ✅ Search/filter across all columns
 - ✅ Pagination (default 10 per page)
@@ -98,7 +98,7 @@ File `resources/views/app/product/index.blade.php` sudah otomatis menggunakan Da
 
 ### 5. API Response Format
 
-Endpoint `/product/data/list` mengembalikan:
+The `/product/data/list` endpoint returns:
 
 ```json
 {
@@ -127,11 +127,11 @@ Endpoint `/product/data/list` mengembalikan:
 }
 ```
 
-## Custom Implementation untuk Model yang Sudah Ada
+## Custom Implementation for an Existing Model
 
-Jika ingin menambahkan DataTables ke model yang sudah ada (bukan via make:rsc), ikuti langkah ini:
+If you want to add DataTables to an existing model (not via make:rsc), follow these steps:
 
-### 1. Tambah Method `list()` ke Controller
+### 1. Add a `list()` Method to the Controller
 
 File: `app/Http/Controllers/ProductController.php`
 
@@ -157,7 +157,7 @@ public function list(Request $request)
 }
 ```
 
-### 2. Tambah API Route
+### 2. Add the API Route
 
 File: `routes/web.php`
 
@@ -168,19 +168,19 @@ Route::middleware(['auth'])->group(function () {
 });
 ```
 
-**Important**: Pastikan route API endpoint didefinisikan **sebelum** route resource.
+**Important**: Make sure the API endpoint route is defined **before** the resource route.
 
-### 3. Update Index View
+### 3. Update the Index View
 
 File: `resources/views/app/product/index.blade.php`
 
-Ganti bagian table dan pagination dengan template DataTables dari dokumentasi.
+Replace the table and pagination section with the DataTables template from the documentation.
 
 ## Customization Examples
 
-### Contoh 1: Tambah Kolom Status
+### Example 1: Add a Status Column
 
-**Step 1**: Update API response di controller
+**Step 1**: Update the API response in the controller
 
 ```php
 public function list(Request $request)
@@ -191,7 +191,7 @@ public function list(Request $request)
         'data' => $items->map(fn($item) => [
             'id' => $item->id,
             'name' => $item->name ?? '',
-            'status' => $item->status ?? 'active',  // Tambah ini
+            'status' => $item->status ?? 'active',  // Add this
             'created_at' => $item->created_at?->format('Y-m-d H:i:s') ?? '',
             'actions' => [
                 'show' => route('product.show', $item->id),
@@ -203,7 +203,7 @@ public function list(Request $request)
 }
 ```
 
-**Step 2**: Tambah kolom di columns config
+**Step 2**: Add the column to the columns config
 
 ```javascript
 columns: [
@@ -222,7 +222,7 @@ columns: [
 ]
 ```
 
-### Contoh 2: Format Harga/Currency
+### Example 2: Format Price/Currency
 
 ```javascript
 { 
@@ -237,13 +237,13 @@ columns: [
 }
 ```
 
-### Contoh 3: Ubah Jumlah Rows per Halaman
+### Example 3: Change the Number of Rows per Page
 
 ```javascript
 new DataTable('#product-table', {
-    // ... config lainnya
+    // ... other config
     pageLength: 25,  // Default 25 rows per page
-    lengthMenu: [10, 25, 50, 100],  // Opsi dropdown
+    lengthMenu: [10, 25, 50, 100],  // Dropdown options
     // ...
 });
 ```
@@ -252,21 +252,21 @@ new DataTable('#product-table', {
 
 ### Test DataTables via Browser
 
-1. Start development server:
+1. Start the development server:
    ```bash
    php artisan serve
    ```
 
-2. Navigate ke `/product` (atau route index yang dibuat)
+2. Navigate to `/product` (or the index route you created)
 
-3. Verifikasi:
-   - ✅ Table tampil dengan data
-   - ✅ Sorting works (klik header)
-   - ✅ Search works (ketik di search box)
+3. Verify:
+   - ✅ The table displays with data
+   - ✅ Sorting works (click header)
+   - ✅ Search works (type in the search box)
    - ✅ Pagination works
    - ✅ Action buttons work
 
-### Test API Endpoint
+### Test the API Endpoint
 
 ```bash
 curl -X GET "http://localhost:8000/product/data/list" \
@@ -274,43 +274,43 @@ curl -X GET "http://localhost:8000/product/data/list" \
   -H "X-Requested-With: XMLHttpRequest"
 ```
 
-Harusnya return JSON dengan struktur `{ "data": [...] }`
+Should return JSON with the structure `{ "data": [...] }`
 
 ## Common Issues & Solutions
 
 ### Issue: "DataTable is not defined"
 
-**Cause**: DataTables library belum diload
+**Cause**: The DataTables library hasn't been loaded
 
-**Fix**: Pastikan `<script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>` ada di blade template
+**Fix**: Make sure `<script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>` exists in the blade template
 
-### Issue: No data tampil di table
+### Issue: No data showing in the table
 
-**Cause**: API endpoint error atau structure response berbeda
+**Cause**: API endpoint error or the response structure differs
 
 **Fix**: 
-1. Check browser console untuk errors
-2. Check network tab untuk API response
-3. Verifikasi response structure sesuai dengan columns config
+1. Check the browser console for errors
+2. Check the network tab for the API response
+3. Verify the response structure matches the columns config
 
-### Issue: Delete button tidak bekerja
+### Issue: Delete button not working
 
-**Cause**: CSRF token missing atau route DELETE tidak ada
+**Cause**: Missing CSRF token or no DELETE route
 
 **Fix**:
-1. Add meta tag di master layout: `<meta name="csrf-token" content="{{ csrf_token() }}">`
-2. Verifikasi route DELETE di routes/web.php
-3. Check browser console untuk fetch errors
+1. Add the meta tag in the master layout: `<meta name="csrf-token" content="{{ csrf_token() }}">`
+2. Verify the DELETE route in routes/web.php
+3. Check the browser console for fetch errors
 
 ## Performance Tips
 
-1. **Large Datasets**: Gunakan server-side pagination (lihat dokumentasi lanjutan)
-2. **Caching**: Cache response API dengan Redis
-3. **Indexing**: Add database indexes ke columns yang sering di-search/sort
-4. **Lazy Loading**: Load DataTables JavaScript hanya di halaman index yang perlu
+1. **Large Datasets**: Use server-side pagination (see advanced documentation)
+2. **Caching**: Cache the API response with Redis
+3. **Indexing**: Add database indexes to columns that are frequently searched/sorted
+4. **Lazy Loading**: Only load DataTables JavaScript on the index pages that need it
 
 ## Next Steps
 
-- Baca dokumentasi lengkap: [DATATABLE_INTEGRATION.md](./DATATABLE_INTEGRATION.md)
-- Cek [DataTables Official Docs](https://datatables.net/)
-- Implementasikan server-side pagination untuk large datasets
+- Read the full documentation: [DATATABLE_INTEGRATION.md](./DATATABLE_INTEGRATION.md)
+- Check the [DataTables Official Docs](https://datatables.net/)
+- Implement server-side pagination for large datasets

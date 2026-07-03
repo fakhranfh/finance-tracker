@@ -20,21 +20,21 @@ class EnsureTokenIsValid
         $token = $request->query('token');
         $email = $request->query('email');
 
-        if (!$token || !$email) {
+        if (! $token || ! $email) {
             return redirect('/login')->withErrors(['email' => 'The password reset link is invalid.']);
         }
 
-        // Cek di database apakah email ada
+        // Check the database whether the email exists
         $passwordReset = DB::table('password_reset_tokens')
             ->where('email', $email)
             ->first();
 
-        // Jika tidak ada atau token tidak cocok
-        if (!$passwordReset || !Hash::check($token, $passwordReset->token)) {
+        // If it doesn't exist or the token doesn't match
+        if (! $passwordReset || ! Hash::check($token, $passwordReset->token)) {
             return redirect('/login')->withErrors(['email' => 'The password reset link is invalid or has already been used.']);
         }
 
-        $expiresAt = strtotime($passwordReset->created_at) + (60 * 60); // 60 menit
+        $expiresAt = strtotime($passwordReset->created_at) + (60 * 60); // 60 minutes
         if (time() > $expiresAt) {
             return redirect('/login')->withErrors(['email' => 'The password reset link has expired.']);
         }
