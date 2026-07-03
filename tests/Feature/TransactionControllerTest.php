@@ -106,6 +106,31 @@ test('user can transfer funds between wallets', function () {
     expect($toWallet->fresh()->balance)->toBe(600);
 });
 
+test('transaction date is converted from the client timezone cookie to the app timezone', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
+    $category = Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    // A fixed past moment expressed in Asia/Jakarta (UTC+7) local time.
+    $clientLocalDate = now('Asia/Jakarta')->subDay()->setTime(23, 30)->format('Y-m-d H:i:s');
+
+    $response = $this->actingAs($this->user)
+        ->withUnencryptedCookie('client_timezone', 'Asia/Jakarta')
+        ->post(route('transactions.store'), [
+            'type' => 'income',
+            'wallet_id' => $wallet->id,
+            'category_id' => $category->id,
+            'amount' => 500,
+            'transaction_date' => $clientLocalDate,
+        ]);
+
+    $response->assertRedirect(route('transactions.index'));
+
+    $transaction = $wallet->transactions()->latest()->first();
+
+    expect($transaction->transaction_date->format('H:i'))
+        ->toBe(now('Asia/Jakarta')->subDay()->setTime(23, 30)->setTimezone(config('app.timezone'))->format('H:i'));
+});
+
 test('transaction request fails validation when the date is in the future', function () {
     $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
     $category = Category::factory()->for($this->user)->create(['type' => 'income']);

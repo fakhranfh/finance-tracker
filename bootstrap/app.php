@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies('*');
         $middleware->append(PreservePasswordUpdateErrors::class);
+        $middleware->encryptCookies(except: ['client_timezone']);
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

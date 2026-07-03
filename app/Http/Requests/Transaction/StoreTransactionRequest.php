@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Transaction;
 
+use App\Http\Requests\Concerns\ConvertsClientTimezone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreTransactionRequest extends FormRequest
 {
+    use ConvertsClientTimezone;
+
     public function authorize(): bool
     {
         if ($this->input('type') === 'transfer') {
@@ -27,6 +30,16 @@ class StoreTransactionRequest extends FormRequest
             'transaction_date' => ['required', 'date', 'before_or_equal:now'],
             'notes' => ['nullable', 'string'],
         ];
+    }
+
+    /**
+     * Convert the client-local transaction date/time into the application's
+     * timezone before validation, since the form submits a naive datetime
+     * string in the browser's local timezone.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->convertFieldsToAppTimezone(['transaction_date']);
     }
 
     public function messages(): array

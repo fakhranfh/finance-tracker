@@ -111,7 +111,7 @@
                                     : $model->wallet->name;
                             @endphp
                             <tr>
-                                <td class="px-space-lg py-space-sm font-body-md text-on-surface whitespace-nowrap">{{ $entry['date']->format('d M Y') }}</td>
+                                <td class="px-space-lg py-space-sm font-body-md text-on-surface whitespace-nowrap js-local-datetime" data-utc="{{ $entry['date']->clone()->setTimezone('UTC')->toIso8601String() }}">{{ $entry['date']->format('d M Y H:i') }}</td>
                                 <td class="px-space-lg py-space-sm">
                                     <span class="inline-flex px-space-sm py-[2px] rounded-full font-label-sm text-label-sm uppercase {{ $badge['class'] }}">{{ $badge['label'] }}</span>
                                 </td>
