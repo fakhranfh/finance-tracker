@@ -20,8 +20,6 @@ test('password change page shows success alert after update', function () {
     // Verify session has status message
     expect($response->getSession()->has('status'))->toBeTrue();
 
-    echo 'Redirect URL: '.$response->headers->get('Location').PHP_EOL;
-
     // Navigate to change-password page with session
     $followResponse = $this->actingAs($user)
         ->withSession($response->getSession()->all())
@@ -29,12 +27,6 @@ test('password change page shows success alert after update', function () {
 
     // The follow response should contain the success alert
     $html = $followResponse->getContent();
-
-    // Save HTML to file for inspection
-    file_put_contents(
-        storage_path('password-change-success.html'),
-        $html
-    );
 
     // Verify alert component is in the HTML
     expect($html)->toContain('success-alert');
