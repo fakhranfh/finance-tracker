@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransferController;
@@ -23,7 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('/change-password', 'change-password')->name('change-password');
 
-    Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
 
     Route::resource('wallets', WalletController::class)->only(['index', 'store', 'update', 'destroy']);
 

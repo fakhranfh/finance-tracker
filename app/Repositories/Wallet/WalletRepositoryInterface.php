@@ -17,4 +17,6 @@ interface WalletRepositoryInterface
     public function update($id, array $data);
 
     public function delete($id);
+
+    public function sumBalance(string $userId): int;
 }

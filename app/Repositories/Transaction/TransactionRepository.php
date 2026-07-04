@@ -2,7 +2,11 @@
 
 namespace App\Repositories\Transaction;
 
+use App\Enums\TransactionType;
 use App\Models\Transaction;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TransactionRepository implements TransactionRepositoryInterface
 {
@@ -70,5 +74,39 @@ class TransactionRepository implements TransactionRepositoryInterface
     public function delete($id)
     {
         return Transaction::destroy($id);
+    }
+
+    public function sumAmountByTypeForPeriod(string $userId, TransactionType $type, Carbon $from, Carbon $to): int
+    {
+        return (int) Transaction::where('user_id', $userId)
+            ->where('type', $type)
+            ->whereBetween('transaction_date', [$from, $to])
+            ->sum('amount');
+    }
+
+    public function topExpenseCategoriesForPeriod(string $userId, Carbon $from, Carbon $to): Collection
+    {
+        return Transaction::query()
+            ->join('categories', 'categories.id', '=', 'transactions.category_id')
+            ->where('transactions.user_id', $userId)
+            ->where('transactions.type', TransactionType::Expense)
+            ->whereBetween('transactions.transaction_date', [$from, $to])
+            ->groupBy('transactions.category_id', 'categories.name')
+            ->orderByDesc('total')
+            ->select([
+                'transactions.category_id as category_id',
+                'categories.name as category_name',
+                DB::raw('SUM(transactions.amount) as total'),
+            ])
+            ->get();
+    }
+
+    public function recent(string $userId, int $limit = 10): Collection
+    {
+        return Transaction::where('user_id', $userId)
+            ->with(['wallet', 'category'])
+            ->orderByDesc('transaction_date')
+            ->limit($limit)
+            ->get();
     }
 }

@@ -59,4 +59,9 @@ class WalletRepository implements WalletRepositoryInterface
     {
         return Wallet::destroy($id);
     }
+
+    public function sumBalance(string $userId): int
+    {
+        return (int) Wallet::where('user_id', $userId)->sum('balance');
+    }
 }

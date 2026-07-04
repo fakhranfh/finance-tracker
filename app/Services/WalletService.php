@@ -8,8 +8,10 @@ class WalletService
 {
     protected $walletRepository;
 
-    public function __construct(WalletRepositoryInterface $walletRepository)
-    {
+    public function __construct(
+        WalletRepositoryInterface $walletRepository,
+        protected DashboardService $dashboardService,
+    ) {
         $this->walletRepository = $walletRepository;
     }
 
@@ -30,16 +32,29 @@ class WalletService
 
     public function create(array $data)
     {
-        return $this->walletRepository->create($data);
+        $wallet = $this->walletRepository->create($data);
+        $this->dashboardService->forgetTotalBalanceCache($wallet->user_id);
+
+        return $wallet;
     }
 
     public function update($id, array $data)
     {
-        return $this->walletRepository->update($id, $data);
+        $wallet = $this->walletRepository->update($id, $data);
+        $this->dashboardService->forgetTotalBalanceCache($wallet->user_id);
+
+        return $wallet;
     }
 
     public function delete($id)
     {
-        return $this->walletRepository->delete($id);
+        $wallet = $this->walletRepository->find($id);
+        $result = $this->walletRepository->delete($id);
+
+        if ($wallet) {
+            $this->dashboardService->forgetTotalBalanceCache($wallet->user_id);
+        }
+
+        return $result;
     }
 }

@@ -115,6 +115,7 @@
         }
     </style>
     @stack('styles')
+    @vite('resources/js/app.js')
 </head>
 
 <body class="@yield('body_class', 'bg-background text-on-background min-h-screen p-gutter font-body-md') flex flex-col">

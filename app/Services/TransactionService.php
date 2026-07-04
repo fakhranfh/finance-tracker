@@ -20,6 +20,7 @@ class TransactionService
         protected TransferService $transferService,
         protected WalletService $walletService,
         protected CategoryService $categoryService,
+        protected DashboardService $dashboardService,
     ) {
         $this->transactionRepository = $transactionRepository;
     }
@@ -196,7 +197,11 @@ class TransactionService
 
             $wallet->save();
 
-            return $this->transactionRepository->create($data);
+            $transaction = $this->transactionRepository->create($data);
+
+            $this->dashboardService->forgetTotalBalanceCache($data['user_id']);
+
+            return $transaction;
         });
     }
 
@@ -225,6 +230,8 @@ class TransactionService
 
             $wallet->save();
             $transaction->delete();
+
+            $this->dashboardService->forgetTotalBalanceCache($transaction->user_id);
 
             return $transaction;
         });
