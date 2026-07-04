@@ -7,6 +7,10 @@
     $showBackButton = true;
 @endphp
 
+@php
+    $userNow = now(auth()->user()->timezone ?: config('app.timezone'));
+@endphp
+
 @section('app-content')
     <div class="space-y-space-lg max-w-3xl mx-auto">
         @include('auth.success-and-error-alert')
@@ -86,13 +90,13 @@
                 <div class="flex gap-space-sm">
                     <div class="flex-1">
                         <label for="transaction-date" class="block font-label-md text-label-md text-secondary mb-space-xs">Date</label>
-                        <input type="date" id="transaction-date" value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required
+                        <input type="date" id="transaction-date" value="{{ $userNow->toDateString() }}" max="{{ $userNow->toDateString() }}" required
                             onchange="capTransactionTime()"
                             class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
                     </div>
                     <div class="flex-1">
                         <label for="transaction-time" class="block font-label-md text-label-md text-secondary mb-space-xs">Time</label>
-                        <input type="time" id="transaction-time" value="{{ now()->format('H:i') }}" max="{{ now()->format('H:i') }}" required
+                        <input type="time" id="transaction-time" value="{{ $userNow->format('H:i') }}" max="{{ $userNow->format('H:i') }}" required
                             class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
                     </div>
                     <input type="hidden" name="transaction_date" id="transaction-date-time">
