@@ -3,8 +3,10 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +36,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/transactions-data', [TransactionController::class, 'data'])->name('transactions.data');
     Route::delete('/transfers/{transfer}', [TransferController::class, 'destroy'])->name('transfers.destroy');
 
+    Route::resource('roles', RoleController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::put('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
 });
 
 Route::post('/logout', function (Request $request) {

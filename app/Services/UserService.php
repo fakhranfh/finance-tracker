@@ -47,4 +47,14 @@ class UserService
     {
         Mail::to($user->pending_email)->send(new PendingEmailVerificationMail($user, $verificationUrl));
     }
+
+    public function getAll()
+    {
+        return $this->userRepository->getAll();
+    }
+
+    public function assignRole(User $user, string $roleName): User
+    {
+        return $this->userRepository->assignRole($user, $roleName);
+    }
 }

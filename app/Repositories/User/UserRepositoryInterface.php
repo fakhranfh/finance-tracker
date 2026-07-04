@@ -16,4 +16,8 @@ interface UserRepositoryInterface
     public function setPendingEmail(User $user, string $pendingEmail): void;
 
     public function confirmPendingEmail(User $user): void;
+
+    public function getAll();
+
+    public function assignRole(User $user, string $roleName): User;
 }

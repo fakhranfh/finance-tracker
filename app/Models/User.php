@@ -33,4 +33,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->hasRole('admin') || parent::hasVerifiedEmail();
+    }
 }

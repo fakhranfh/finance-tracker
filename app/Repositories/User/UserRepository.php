@@ -44,6 +44,18 @@ class UserRepository implements UserRepositoryInterface
         ]);
     }
 
+    public function getAll()
+    {
+        return User::with('roles')->get();
+    }
+
+    public function assignRole(User $user, string $roleName): User
+    {
+        $user->syncRoles([$roleName]);
+
+        return $user;
+    }
+
     private function removeProfilePhotoFile(User $user): void
     {
         if ($user->profile_photo_path) {

@@ -13,7 +13,7 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $entities = ['wallet', 'category', 'transaction', 'transfer', 'user'];
+        $entities = ['wallet', 'category', 'transaction', 'transfer', 'user', 'role'];
         $actions = ['view', 'create', 'update', 'delete'];
 
         foreach ($entities as $entity) {
@@ -25,6 +25,8 @@ class RolePermissionSeeder extends Seeder
         Role::findOrCreate('admin')->syncPermissions([
             // Full control over user accounts.
             'view-user', 'create-user', 'update-user', 'delete-user',
+            // Full control over role and permission management.
+            'view-role', 'create-role', 'update-role', 'delete-role',
             // View-only over other users' financial data (support/audit), never mutate it.
             'view-wallet', 'view-category', 'view-transaction', 'view-transfer',
             // Full control over their own financial data, same as any user.
