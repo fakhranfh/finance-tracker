@@ -65,99 +65,75 @@
                     </div>
 
                     <!-- Edit Wallet Modal -->
-                    <div id="edit-wallet-modal-{{ $wallet->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/40 p-gutter">
-                        <div class="bg-surface rounded-lg p-space-lg w-full max-w-md">
-                            <div class="flex items-center justify-between mb-space-md">
-                                <h2 class="font-headline-sm text-headline-sm text-on-surface">Edit Wallet</h2>
-                                <button type="button" onclick="document.getElementById('edit-wallet-modal-{{ $wallet->id }}').classList.add('hidden')" class="text-secondary hover:text-on-surface">
-                                    <span class="material-symbols-outlined text-[20px]">close</span>
-                                </button>
+                    <x-modal id="edit-wallet-modal-{{ $wallet->id }}" title="Edit Wallet">
+                        <form method="POST" action="{{ route('wallets.update', $wallet) }}" class="space-y-space-md">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label for="name-{{ $wallet->id }}" class="block font-label-md text-label-md text-secondary mb-space-xs">Wallet Name</label>
+                                <input type="text" name="name" id="name-{{ $wallet->id }}" value="{{ $wallet->name }}" required maxlength="255"
+                                    class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
                             </div>
-                            <form method="POST" action="{{ route('wallets.update', $wallet) }}" class="space-y-space-md">
-                                @csrf
-                                @method('PUT')
-                                <div>
-                                    <label for="name-{{ $wallet->id }}" class="block font-label-md text-label-md text-secondary mb-space-xs">Wallet Name</label>
-                                    <input type="text" name="name" id="name-{{ $wallet->id }}" value="{{ $wallet->name }}" required maxlength="255"
-                                        class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                                </div>
-                                <div class="flex justify-end gap-space-sm">
-                                    <button type="button" onclick="document.getElementById('edit-wallet-modal-{{ $wallet->id }}').classList.add('hidden')"
-                                        class="px-space-lg py-space-sm rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-lowest transition-colors">
-                                        Cancel
-                                    </button>
-                                    <button type="submit"
-                                        class="px-space-lg py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity">
-                                        Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Delete Wallet Modal -->
-                    <div id="delete-wallet-modal-{{ $wallet->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/40 p-gutter">
-                        <div class="bg-surface rounded-lg p-space-lg w-full max-w-md">
-                            <div class="flex items-center justify-between mb-space-md">
-                                <h2 class="font-headline-sm text-headline-sm text-on-surface">Delete Wallet</h2>
-                                <button type="button" onclick="document.getElementById('delete-wallet-modal-{{ $wallet->id }}').classList.add('hidden')" class="text-secondary hover:text-on-surface">
-                                    <span class="material-symbols-outlined text-[20px]">close</span>
-                                </button>
-                            </div>
-                            <p class="font-body-md text-secondary mb-space-lg">
-                                Are you sure you want to delete <span class="text-on-surface font-label-md">{{ $wallet->name }}</span>? This wallet can be restored later, but it will be hidden from your overview.
-                            </p>
-                            <form method="POST" action="{{ route('wallets.destroy', $wallet) }}" class="flex justify-end gap-space-sm">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" onclick="document.getElementById('delete-wallet-modal-{{ $wallet->id }}').classList.add('hidden')"
+                            <div class="flex justify-end gap-space-sm">
+                                <button type="button" onclick="document.getElementById('edit-wallet-modal-{{ $wallet->id }}').classList.add('hidden')"
                                     class="px-space-lg py-space-sm rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-lowest transition-colors">
                                     Cancel
                                 </button>
                                 <button type="submit"
-                                    class="px-space-lg py-space-sm rounded-lg bg-error text-on-error font-label-md text-label-md hover:opacity-90 transition-opacity">
-                                    Delete
+                                    class="px-space-lg py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity">
+                                    Save Changes
                                 </button>
-                            </form>
-                        </div>
-                    </div>
+                            </div>
+                        </form>
+                    </x-modal>
+
+                    <!-- Delete Wallet Modal -->
+                    <x-modal id="delete-wallet-modal-{{ $wallet->id }}" title="Delete Wallet">
+                        <p class="font-body-md text-secondary mb-space-lg">
+                            Are you sure you want to delete <span class="text-on-surface font-label-md">{{ $wallet->name }}</span>? This wallet can be restored later, but it will be hidden from your overview.
+                        </p>
+                        <form method="POST" action="{{ route('wallets.destroy', $wallet) }}" class="flex justify-end gap-space-sm">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" onclick="document.getElementById('delete-wallet-modal-{{ $wallet->id }}').classList.add('hidden')"
+                                class="px-space-lg py-space-sm rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-lowest transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-space-lg py-space-sm rounded-lg bg-error text-on-error font-label-md text-label-md hover:opacity-90 transition-opacity">
+                                Delete
+                            </button>
+                        </form>
+                    </x-modal>
                 @endforeach
             </div>
         @endif
     </div>
 
     <!-- Add Wallet Modal -->
-    <div id="add-wallet-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/40 p-gutter">
-        <div class="bg-surface rounded-lg p-space-lg w-full max-w-md">
-            <div class="flex items-center justify-between mb-space-md">
-                <h2 class="font-headline-sm text-headline-sm text-on-surface">Add Wallet</h2>
-                <button type="button" onclick="document.getElementById('add-wallet-modal').classList.add('hidden')" class="text-secondary hover:text-on-surface">
-                    <span class="material-symbols-outlined text-[20px]">close</span>
+    <x-modal id="add-wallet-modal" title="Add Wallet">
+        <form method="POST" action="{{ route('wallets.store') }}" class="space-y-space-md">
+            @csrf
+            <div>
+                <label for="new-wallet-name" class="block font-label-md text-label-md text-secondary mb-space-xs">Wallet Name</label>
+                <input type="text" name="name" id="new-wallet-name" required maxlength="255" placeholder="e.g. Mandiri Account"
+                    class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+            </div>
+            <div>
+                <label for="new-wallet-balance" class="block font-label-md text-label-md text-secondary mb-space-xs">Starting Balance (IDR)</label>
+                <input type="number" name="balance" id="new-wallet-balance" min="0" step="1" placeholder="0"
+                    class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
+            </div>
+            <div class="flex justify-end gap-space-sm">
+                <button type="button" onclick="document.getElementById('add-wallet-modal').classList.add('hidden')"
+                    class="px-space-lg py-space-sm rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-lowest transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-space-lg py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity">
+                    Create Wallet
                 </button>
             </div>
-            <form method="POST" action="{{ route('wallets.store') }}" class="space-y-space-md">
-                @csrf
-                <div>
-                    <label for="new-wallet-name" class="block font-label-md text-label-md text-secondary mb-space-xs">Wallet Name</label>
-                    <input type="text" name="name" id="new-wallet-name" required maxlength="255" placeholder="e.g. Mandiri Account"
-                        class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                </div>
-                <div>
-                    <label for="new-wallet-balance" class="block font-label-md text-label-md text-secondary mb-space-xs">Starting Balance (IDR)</label>
-                    <input type="number" name="balance" id="new-wallet-balance" min="0" step="1" placeholder="0"
-                        class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
-                </div>
-                <div class="flex justify-end gap-space-sm">
-                    <button type="button" onclick="document.getElementById('add-wallet-modal').classList.add('hidden')"
-                        class="px-space-lg py-space-sm rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-lowest transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                        class="px-space-lg py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity">
-                        Create Wallet
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+        </form>
+    </x-modal>
 @endsection

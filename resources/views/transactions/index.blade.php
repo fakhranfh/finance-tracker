@@ -48,23 +48,21 @@
 
     @push('modals')
         <!-- Delete Confirmation Modal -->
-        <div id="deleteTransactionModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/50" onclick="closeDeleteTransactionModal()"></div>
-            <div class="relative bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-sm mx-space-md p-space-lg space-y-space-md">
-                <h2 class="font-title-md text-title-md text-on-surface">Delete this entry?</h2>
-                <p class="font-body-md text-secondary">This cannot be undone and will reverse the wallet balance.</p>
-                <div class="flex justify-end gap-space-sm">
-                    <button type="button" onclick="closeDeleteTransactionModal()"
-                        class="px-space-lg py-space-sm rounded-lg font-label-md text-label-md text-secondary hover:bg-surface-container transition-colors">
-                        Cancel
-                    </button>
-                    <button type="button" onclick="confirmDeleteTransactionEntry()"
-                        class="px-space-lg py-space-sm rounded-lg bg-error text-on-error font-label-md text-label-md hover:opacity-90 transition-opacity">
-                        Delete
-                    </button>
-                </div>
+        <x-modal id="deleteTransactionModal" title="Delete this entry?" max-width="max-w-sm" z-index="z-[60]"
+            panel-class="bg-surface-container-lowest rounded-xl shadow-lg p-space-lg space-y-space-md"
+            close="closeDeleteTransactionModal()">
+            <p class="font-body-md text-secondary">This cannot be undone and will reverse the wallet balance.</p>
+            <div class="flex justify-end gap-space-sm">
+                <button type="button" onclick="closeDeleteTransactionModal()"
+                    class="px-space-lg py-space-sm rounded-lg font-label-md text-label-md text-secondary hover:bg-surface-container transition-colors">
+                    Cancel
+                </button>
+                <button type="button" onclick="confirmDeleteTransactionEntry()"
+                    class="px-space-lg py-space-sm rounded-lg bg-error text-on-error font-label-md text-label-md hover:opacity-90 transition-opacity">
+                    Delete
+                </button>
             </div>
-        </div>
+        </x-modal>
     @endpush
 
     <x-data-table-scripts />
