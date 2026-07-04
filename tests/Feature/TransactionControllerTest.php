@@ -219,7 +219,9 @@ test('user can transfer funds between wallets', function () {
     expect($toWallet->fresh()->balance)->toBe(600);
 });
 
-test('transaction date is converted from the client timezone cookie to the app timezone', function () {
+test('transaction date is converted from the user\'s stored timezone to the app timezone', function () {
+    $this->user->forceFill(['timezone' => 'Asia/Jakarta'])->save();
+
     $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
     $category = Category::factory()->for($this->user)->create(['type' => 'income']);
 
@@ -227,7 +229,6 @@ test('transaction date is converted from the client timezone cookie to the app t
     $clientLocalDate = now('Asia/Jakarta')->subDay()->setTime(23, 30)->format('Y-m-d H:i:s');
 
     $response = $this->actingAs($this->user)
-        ->withUnencryptedCookie('client_timezone', 'Asia/Jakarta')
         ->post(route('transactions.store'), [
             'type' => 'income',
             'wallet_id' => $wallet->id,

@@ -61,7 +61,7 @@
 
             const dateCell = document.createElement('td');
             dateCell.className = 'px-space-lg py-space-sm font-body-md text-on-surface whitespace-nowrap';
-            dateCell.textContent = formatLocalDateTime(item.date);
+            dateCell.textContent = item.date;
             row.appendChild(dateCell);
 
             const typeCell = document.createElement('td');

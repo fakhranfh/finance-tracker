@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 test('login page can be rendered', function () {
     $this->get('/login')->assertSuccessful();
@@ -42,6 +43,45 @@ test('login fails with unregistered email', function () {
     ])->assertSessionHasErrors('email');
 
     $this->assertGuest();
+});
+
+test('login detects and stores the user timezone from their IP when not already set', function () {
+    Http::fake([
+        'ip-api.com/*' => Http::response(['status' => 'success', 'timezone' => 'Asia/Jakarta']),
+    ]);
+
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password',
+        'timezone' => null,
+    ]);
+
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.5'])->post('/login', [
+        'email' => 'john@example.com',
+        'password' => 'password',
+    ]);
+
+    expect($user->fresh()->timezone)->toBe('Asia/Jakarta');
+});
+
+test('login does not overwrite an already-known user timezone', function () {
+    Http::fake([
+        'ip-api.com/*' => Http::response(['status' => 'success', 'timezone' => 'Asia/Jakarta']),
+    ]);
+
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password',
+        'timezone' => 'America/New_York',
+    ]);
+
+    $this->post('/login', [
+        'email' => 'john@example.com',
+        'password' => 'password',
+    ]);
+
+    expect($user->fresh()->timezone)->toBe('America/New_York');
+    Http::assertNothingSent();
 });
 
 test('login is throttled after 5 failed attempts', function () {

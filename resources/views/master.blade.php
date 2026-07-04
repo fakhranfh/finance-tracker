@@ -120,34 +120,6 @@
 <body class="@yield('body_class', 'bg-background text-on-background min-h-screen p-gutter font-body-md') flex flex-col">
     @yield('content')
     @stack('scripts')
-
-    <script>
-        (function () {
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-            if (document.cookie.split('; ').find((row) => row.startsWith('client_timezone='))?.split('=')[1] !== timezone) {
-                document.cookie = `client_timezone=${timezone};path=/;max-age=31536000;samesite=lax`;
-            }
-        })();
-
-        function formatLocalDate(isoUtc, options = { day: '2-digit', month: 'short', year: 'numeric' }) {
-            return new Date(isoUtc).toLocaleDateString('en-GB', options);
-        }
-
-        function formatLocalDateTime(isoUtc, options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
-            return new Date(isoUtc).toLocaleString('en-GB', options);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.js-local-date').forEach((element) => {
-                element.textContent = formatLocalDate(element.dataset.utc);
-            });
-
-            document.querySelectorAll('.js-local-datetime').forEach((element) => {
-                element.textContent = formatLocalDateTime(element.dataset.utc);
-            });
-        });
-    </script>
 </body>
 
 </html>

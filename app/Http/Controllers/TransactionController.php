@@ -62,6 +62,7 @@ class TransactionController extends Controller
             $filters,
             $request->input('sort', 'date'),
             $request->input('dir', 'desc'),
+            auth()->user()->timezone,
         );
 
         return response()->json(['data' => $rows]);

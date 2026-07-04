@@ -7,15 +7,15 @@ use Carbon\Carbon;
 trait ConvertsClientTimezone
 {
     /**
-     * Convert the given naive datetime fields from the client's local
-     * timezone (read from the `client_timezone` cookie set globally by
-     * the app layout) into the application's timezone, in place.
+     * Convert the given naive datetime fields from the authenticated user's
+     * stored timezone (detected from their IP at login) into the
+     * application's timezone, in place.
      *
      * @param  array<int, string>  $fields
      */
     protected function convertFieldsToAppTimezone(array $fields): void
     {
-        $clientTimezone = $this->cookie('client_timezone');
+        $clientTimezone = $this->user()?->timezone;
 
         if (! $clientTimezone) {
             return;

@@ -83,7 +83,7 @@ class TransactionService
      * @param  array{wallet_id?: string|null, date_from?: string|null, date_to?: string|null, type?: string|null}  $filters
      * @return array<int, array{id: string, date: string, kind: string, description: string, wallet_label: string, amount: int}>
      */
-    public function getHistoryRows(string $userId, array $filters, string $sort = 'date', string $dir = 'desc'): array
+    public function getHistoryRows(string $userId, array $filters, string $sort = 'date', string $dir = 'desc', ?string $viewerTimezone = null): array
     {
         $history = $this->buildHistory($userId, $filters);
 
@@ -99,7 +99,7 @@ class TransactionService
             ->values()
             ->map(fn (array $entry) => [
                 'id' => $entry['model']->id,
-                'date' => $entry['date']->clone()->setTimezone('UTC')->toIso8601String(),
+                'date' => $entry['date']->clone()->setTimezone($viewerTimezone ?: config('app.timezone'))->format('d M Y H:i'),
                 'kind' => $entry['kind'],
                 'description' => $entry['description'],
                 'wallet_label' => $entry['wallet_label'],
