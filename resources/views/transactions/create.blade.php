@@ -83,7 +83,8 @@
             <div class="bg-surface border border-outline-variant rounded-lg p-space-lg space-y-space-md">
                 <div>
                     <label for="transaction-amount" class="block font-label-md text-label-md text-secondary mb-space-xs">Amount (IDR)</label>
-                    <input type="number" name="amount" id="transaction-amount" min="1" step="1" required placeholder="0"
+                    <input type="text" inputmode="numeric" name="amount" id="transaction-amount" required placeholder="0"
+                        oninput="formatAmountInput(this)"
                         class="w-full rounded-lg border border-outline-variant bg-surface px-space-md py-space-sm font-body-md text-on-surface focus:outline-none focus:border-primary">
                 </div>
 
@@ -160,6 +161,11 @@
             }
         }
 
+        function formatAmountInput(input) {
+            const digits = input.value.replace(/\D/g, '');
+            input.value = digits === '' ? '' : new Intl.NumberFormat('id-ID').format(digits);
+        }
+
         function capTransactionTime() {
             const dateInput = document.getElementById('transaction-date');
             const timeInput = document.getElementById('transaction-time');
@@ -181,9 +187,11 @@
             const dateInput = document.getElementById('transaction-date');
             const timeInput = document.getElementById('transaction-time');
             const combinedInput = document.getElementById('transaction-date-time');
+            const amountInput = document.getElementById('transaction-amount');
 
             capTransactionTime();
             combinedInput.value = `${dateInput.value} ${timeInput.value}`;
+            amountInput.value = amountInput.value.replace(/\D/g, '');
 
             return true;
         }
