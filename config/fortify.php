@@ -163,7 +163,7 @@ return [
 
     'features' => [
         Features::registration(),
-        Features::resetPasswords(),
+        ...(env('EMAIL_PASSWORD_RESET_ENABLED', false) ? [Features::resetPasswords()] : []),
         ...(env('EMAIL_VERIFICATION_ENABLED', false) ? [Features::emailVerification()] : []),
         Features::updateProfileInformation(),
         Features::updatePasswords(),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\ResetUserPasswordRequest;
 use App\Http\Requests\User\UpdateUserRoleRequest;
 use App\Models\User;
 use App\Services\RoleService;
@@ -32,5 +33,12 @@ class UserController extends Controller
         $this->userService->assignRole($user, $request->validated('role'));
 
         return redirect()->route('users.index')->with('success', 'User role updated successfully.');
+    }
+
+    public function resetPassword(ResetUserPasswordRequest $request, User $user): RedirectResponse
+    {
+        $this->userService->changePassword($user, $request->validated('password'));
+
+        return redirect()->route('users.index')->with('success', "Password for {$user->name} has been reset.");
     }
 }

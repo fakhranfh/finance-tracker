@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Laravel\Dusk\Browser;
+use Laravel\Fortify\Features;
 
 beforeEach(function () {
     Browser::$storeScreenshotsAt = base_path('docs/dusk/images');
@@ -85,6 +86,10 @@ test('capture email verify notice screenshot', function () {
 });
 
 test('capture forgot password page screenshot', function () {
+    if (! Features::enabled(Features::resetPasswords())) {
+        $this->markTestSkipped('Email password reset feature is disabled (set EMAIL_PASSWORD_RESET_ENABLED=true to re-enable).');
+    }
+
     $this->browse(function (Browser $browser) {
         $browser->visit('/forgot-password')
             ->pause(500)
@@ -93,6 +98,10 @@ test('capture forgot password page screenshot', function () {
 });
 
 test('capture reset password page screenshot', function () {
+    if (! Features::enabled(Features::resetPasswords())) {
+        $this->markTestSkipped('Email password reset feature is disabled (set EMAIL_PASSWORD_RESET_ENABLED=true to re-enable).');
+    }
+
     Notification::fake();
 
     $user = User::factory()->create();

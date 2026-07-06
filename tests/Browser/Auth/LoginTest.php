@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Laravel\Dusk\Browser;
+use Laravel\Fortify\Features;
 
 test('login page can be rendered', function () {
     $this->browse(function (Browser $browser) {
@@ -75,6 +76,10 @@ test('login page has link to register page', function () {
 });
 
 test('login page has link to forgot password', function () {
+    if (! Features::enabled(Features::resetPasswords())) {
+        $this->markTestSkipped('Email password reset feature is disabled (set EMAIL_PASSWORD_RESET_ENABLED=true to re-enable).');
+    }
+
     $this->browse(function (Browser $browser) {
         $browser->visit('/login')
             ->waitForLocation('/login')

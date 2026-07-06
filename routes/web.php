@@ -47,6 +47,7 @@ Route::middleware(array_filter([
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::put('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+    Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
 });
 
 Route::post('/logout', function (Request $request) {

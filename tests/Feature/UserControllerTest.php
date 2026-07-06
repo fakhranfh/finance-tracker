@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\Hash;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -43,5 +44,33 @@ test('regular user cannot change another user role', function () {
 
     $this->actingAs($this->user)->put(route('users.update-role', $other), [
         'role' => 'admin',
+    ])->assertForbidden();
+});
+
+test('admin can reset another user password', function () {
+    $response = $this->actingAs($this->admin)->put(route('users.reset-password', $this->user), [
+        'password' => 'NewSecret!Pass123#Secure',
+        'password_confirmation' => 'NewSecret!Pass123#Secure',
+    ]);
+
+    $response->assertRedirect(route('users.index'))->assertSessionHas('success');
+    expect(Hash::check('NewSecret!Pass123#Secure', $this->user->fresh()->password))->toBeTrue();
+});
+
+test('admin resetting password requires confirmation match', function () {
+    $response = $this->actingAs($this->admin)->put(route('users.reset-password', $this->user), [
+        'password' => 'NewSecret!Pass123#Secure',
+        'password_confirmation' => 'Mismatch!Pass123#Secure',
+    ]);
+
+    $response->assertSessionHasErrors('password');
+});
+
+test('regular user cannot reset another user password', function () {
+    $other = User::factory()->create()->assignRole('user');
+
+    $this->actingAs($this->user)->put(route('users.reset-password', $other), [
+        'password' => 'NewSecret!Pass123#Secure',
+        'password_confirmation' => 'NewSecret!Pass123#Secure',
     ])->assertForbidden();
 });

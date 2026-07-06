@@ -5,8 +5,13 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Laravel\Fortify\Features;
 
 beforeEach(function () {
+    if (! Features::enabled(Features::resetPasswords())) {
+        $this->markTestSkipped('Email password reset feature is disabled (set EMAIL_PASSWORD_RESET_ENABLED=true to re-enable).');
+    }
+
     Notification::fake();
 });
 

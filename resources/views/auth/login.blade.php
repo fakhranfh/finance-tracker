@@ -47,7 +47,11 @@
             <div class="space-y-space-xs">
                 <div class="flex items-center justify-between">
                     <label class="block font-label-md text-label-md text-on-surface" for="password">Password</label>
-                    <a class="font-label-md text-label-md text-primary hover:underline transition-colors" href="{{ route('password.request') }}">Forgot Password?</a>
+                    @if (\Laravel\Fortify\Features::enabled(\Laravel\Fortify\Features::resetPasswords()))
+                        <a class="font-label-md text-label-md text-primary hover:underline transition-colors" href="{{ route('password.request') }}">Forgot Password?</a>
+                    @else
+                        <span class="font-label-md text-label-md text-secondary" title="Contact an admin to reset your password">Forgot Password? Contact admin</span>
+                    @endif
                 </div>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="lock">lock</span>
