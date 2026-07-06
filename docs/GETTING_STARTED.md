@@ -28,7 +28,7 @@ Make sure the following are installed on your machine:
 
 | Requirement | Minimum Version |
 |---|---|
-| PHP | 8.4+ |
+| PHP | 8.3+ |
 | Composer | 2.x |
 | Node.js | 18+ |
 | npm | 9+ |

@@ -91,7 +91,7 @@ This generates the model, migration, repository (interface + implementation), se
 
 | Layer | Package | Version |
 |---|---|---|
-| Runtime | PHP | 8.4 |
+| Runtime | PHP | 8.3+ |
 | Framework | Laravel | v13 |
 | Auth | Laravel Fortify | v1 |
 | Testing | Pest | v4 |
@@ -106,7 +106,7 @@ This generates the model, migration, repository (interface + implementation), se
 
 ### Prerequisites
 
-- PHP 8.4+
+- PHP 8.3+
 - Composer
 - Node.js 18+
 - MySQL (or SQLite for local dev)
