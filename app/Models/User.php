@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\Features;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'pending_email', 'password', 'profile_photo_path', 'timezone'])]
@@ -36,6 +37,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasVerifiedEmail(): bool
     {
+        if (! Features::enabled(Features::emailVerification())) {
+            return true;
+        }
+
         return $this->hasRole('admin') || parent::hasVerifiedEmail();
     }
 }

@@ -164,7 +164,7 @@ return [
     'features' => [
         Features::registration(),
         Features::resetPasswords(),
-        Features::emailVerification(),
+        ...(env('EMAIL_VERIFICATION_ENABLED', false) ? [Features::emailVerification()] : []),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         Features::twoFactorAuthentication([

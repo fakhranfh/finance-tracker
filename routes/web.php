@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Features;
 
 Route::middleware('guest')->group(function () {
     Route::get('', function () {
@@ -19,10 +20,16 @@ Route::middleware('guest')->group(function () {
 
 Route::view('/', 'landing-page');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(array_filter([
+    'auth',
+    Features::enabled(Features::emailVerification()) ? 'verified' : null,
+]))->group(function () {
     Route::get('/edit-profile', [ProfileController::class, 'edit'])->name('edit-profile');
     Route::post('/edit-profile', [ProfileController::class, 'update']);
-    Route::get('/edit-profile/verify-email', [ProfileController::class, 'verifyEmailChange'])->name('profile.verify-email-change');
+
+    if (Features::enabled(Features::emailVerification())) {
+        Route::get('/edit-profile/verify-email', [ProfileController::class, 'verifyEmailChange'])->name('profile.verify-email-change');
+    }
 
     Route::view('/change-password', 'change-password')->name('change-password');
 

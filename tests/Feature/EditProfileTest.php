@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Fortify\Features;
 
 test('authenticated user can view edit profile page', function () {
     $user = User::factory()->create();
@@ -39,6 +40,10 @@ test('user can update profile name without changing email', function () {
 });
 
 test('user changing email triggers verification and stores pending email', function () {
+    if (! Features::enabled(Features::emailVerification())) {
+        $this->markTestSkipped('Email verification feature is disabled (set EMAIL_VERIFICATION_ENABLED=true to re-enable).');
+    }
+
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/edit-profile', [
@@ -53,6 +58,27 @@ test('user changing email triggers verification and stores pending email', funct
         'id' => $user->id,
         'email' => $user->email,
         'pending_email' => 'newemail@example.com',
+    ]);
+});
+
+test('user changing email updates it immediately when verification is disabled', function () {
+    if (Features::enabled(Features::emailVerification())) {
+        $this->markTestSkipped('Email verification feature is enabled.');
+    }
+
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post('/edit-profile', [
+        'name' => $user->name,
+        'email' => 'newemail@example.com',
+    ]);
+
+    $response->assertRedirect('/edit-profile')
+        ->assertSessionHas('success');
+
+    $this->assertDatabaseHas('users', [
+        'id' => $user->id,
+        'email' => 'newemail@example.com',
     ]);
 });
 

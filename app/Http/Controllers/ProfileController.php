@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
+use Laravel\Fortify\Features;
 
 class ProfileController extends Controller
 {
@@ -35,7 +36,8 @@ class ProfileController extends Controller
 
         unset($data['profile_photo'], $data['remove_photo']);
 
-        if (isset($data['email']) && $data['email'] !== $user->email) {
+        if (Features::enabled(Features::emailVerification())
+            && isset($data['email']) && $data['email'] !== $user->email) {
             $pendingEmail = $data['email'];
             unset($data['email']);
 

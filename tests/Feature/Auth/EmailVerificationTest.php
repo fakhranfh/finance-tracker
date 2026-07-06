@@ -5,6 +5,13 @@ use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
+use Laravel\Fortify\Features;
+
+beforeEach(function () {
+    if (! Features::enabled(Features::emailVerification())) {
+        $this->markTestSkipped('Email verification feature is disabled (set EMAIL_VERIFICATION_ENABLED=true to re-enable).');
+    }
+});
 
 test('email verification notice page can be rendered', function () {
     $user = User::factory()->unverified()->create();

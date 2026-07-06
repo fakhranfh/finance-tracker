@@ -2,6 +2,13 @@
 
 use App\Models\User;
 use Laravel\Dusk\Browser;
+use Laravel\Fortify\Features;
+
+beforeEach(function () {
+    if (! Features::enabled(Features::emailVerification())) {
+        $this->markTestSkipped('Email verification feature is disabled (set EMAIL_VERIFICATION_ENABLED=true to re-enable).');
+    }
+});
 
 test('unverified user sees email verification notice after login', function () {
     $user = User::factory()->unverified()->create();
