@@ -1,5 +1,8 @@
+<!-- Sidebar Backdrop (mobile only) -->
+<div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-30 hidden sm:hidden"></div>
+
 <!-- Sidebar Navigation -->
-<aside id="sidebar" class="fixed left-0 top-16 h-[calc(100vh-64px)] bg-surface border-r border-outline-variant z-40 flex flex-col w-64 shadow-[1px_0_3px_rgba(0,0,0,0.08)] max-sm:hidden transition-all duration-300 overflow-hidden" style="width: 256px;">
+<aside id="sidebar" class="fixed left-0 top-16 h-[calc(100vh-64px)] bg-surface border-r border-outline-variant z-40 flex flex-col w-64 shadow-[1px_0_3px_rgba(0,0,0,0.08)] -translate-x-full sm:translate-x-0 transition-transform sm:transition-all duration-300 overflow-hidden" style="width: 256px;">
     <!-- Navigation Menu -->
     <nav class="flex-1 overflow-y-auto py-space-md px-space-md">
         <ul class="space-y-space-xs">
