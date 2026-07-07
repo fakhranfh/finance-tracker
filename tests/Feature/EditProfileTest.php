@@ -101,6 +101,32 @@ test('user can upload profile photo', function () {
     Storage::disk('public')->assertExists('profile-photos/'.$file->hashName());
 });
 
+test('uploading a profile photo strips embedded GPS Exif metadata', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+
+    $baseJpeg = base64_decode('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAA/AKp//9k=');
+    $exifPayload = "Exif\0\0".'FAKE_GPS_LATLON_37.7749_-122.4194';
+    $exifSegment = "\xFF\xE1".pack('n', 2 + strlen($exifPayload)).$exifPayload;
+    $jpegWithExif = substr($baseJpeg, 0, 2).$exifSegment.substr($baseJpeg, 2);
+
+    $file = UploadedFile::fake()->createWithContent('profile.jpg', $jpegWithExif);
+
+    $response = $this->actingAs($user)->post('/edit-profile', [
+        'name' => $user->name,
+        'email' => $user->email,
+        'profile_photo' => $file,
+    ]);
+
+    $response->assertRedirect('/edit-profile');
+
+    $storedPath = 'profile-photos/'.$file->hashName();
+    Storage::disk('public')->assertExists($storedPath);
+
+    $storedContents = Storage::disk('public')->get($storedPath);
+    expect($storedContents)->not->toContain('FAKE_GPS_LATLON');
+});
+
 test('user can remove profile photo', function () {
     Storage::fake('public');
     $user = User::factory()->create(['profile_photo_path' => '/storage/profile-photos/test.jpg']);

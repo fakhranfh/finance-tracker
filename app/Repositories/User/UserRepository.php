@@ -3,11 +3,14 @@
 namespace App\Repositories\User;
 
 use App\Models\User;
+use App\Services\ImageExifStripper;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class UserRepository implements UserRepositoryInterface
 {
+    public function __construct(private ImageExifStripper $exifStripper) {}
+
     public function update(User $user, array $data): User
     {
         $user->update($data);
@@ -19,7 +22,9 @@ class UserRepository implements UserRepositoryInterface
     {
         $this->removeProfilePhotoFile($user);
 
-        $path = $photo->store('profile-photos', 'public');
+        $path = 'profile-photos/'.$photo->hashName();
+        $contents = $this->exifStripper->strip(file_get_contents($photo->getRealPath()), $photo->getMimeType());
+        Storage::disk('public')->put($path, $contents);
 
         return Storage::url($path);
     }
