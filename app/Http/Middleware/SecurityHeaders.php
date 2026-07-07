@@ -12,6 +12,10 @@ class SecurityHeaders
     {
         $response = $next($request);
 
+        // PHP adds this automatically when `expose_php` is on in php.ini, a setting
+        // this app can't change on shared hosting; strip it here instead.
+        header_remove('X-Powered-By');
+
         if ($request->secure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
