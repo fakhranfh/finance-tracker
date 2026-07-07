@@ -202,6 +202,38 @@ test('user can record an expense transaction', function () {
     expect($wallet->fresh()->balance)->toBe(700);
 });
 
+test('transaction request rejects a category whose type does not match the transaction type', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
+    $incomeCategory = Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    $response = $this->actingAs($this->user)->post(route('transactions.store'), [
+        'type' => 'expense',
+        'wallet_id' => $wallet->id,
+        'category_id' => $incomeCategory->id,
+        'amount' => 300,
+        'transaction_date' => now()->toDateString(),
+    ]);
+
+    $response->assertSessionHasErrors('category_id');
+    expect($wallet->fresh()->balance)->toBe(1000);
+});
+
+test('transaction request rejects an amount above the allowed ceiling', function () {
+    $wallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
+    $category = Category::factory()->for($this->user)->create(['type' => 'income']);
+
+    $response = $this->actingAs($this->user)->post(route('transactions.store'), [
+        'type' => 'income',
+        'wallet_id' => $wallet->id,
+        'category_id' => $category->id,
+        'amount' => 9223372036854775807,
+        'transaction_date' => now()->toDateString(),
+    ]);
+
+    $response->assertSessionHasErrors('amount');
+    expect($wallet->fresh()->balance)->toBe(1000);
+});
+
 test('user can transfer funds between wallets', function () {
     $fromWallet = Wallet::factory()->for($this->user)->create(['balance' => 1000]);
     $toWallet = Wallet::factory()->for($this->user)->create(['balance' => 200]);

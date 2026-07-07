@@ -37,6 +37,10 @@ class UserController extends Controller
 
     public function resetPassword(ResetUserPasswordRequest $request, User $user): RedirectResponse
     {
+        if (auth()->id() === $user->id) {
+            return redirect()->route('users.index')->withErrors(['password' => 'Use the change password page to update your own password.']);
+        }
+
         $this->userService->changePassword($user, $request->validated('password'));
 
         return redirect()->route('users.index')->with('success', "Password for {$user->name} has been reset.");

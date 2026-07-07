@@ -27,3 +27,4 @@ Homestead.yaml
 Thumbs.db
 /tests/k6/tokens.json
 .env.dusk.local
+/docs/pentest-report/*

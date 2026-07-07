@@ -73,3 +73,21 @@ test('admin cannot delete the protected admin or user role', function () {
     $this->assertDatabaseHas('roles', ['id' => $adminRole->id]);
     $this->assertDatabaseHas('roles', ['id' => $userRole->id]);
 });
+
+test('admin cannot update the protected admin or user role', function () {
+    $adminRole = Role::findByName('admin');
+    $userRole = Role::findByName('user');
+    $originalUserPermissions = $userRole->permissions->pluck('name')->all();
+
+    $this->actingAs($this->admin)->put(route('roles.update', $adminRole), [
+        'name' => 'admin',
+        'permissions' => ['view-transaction'],
+    ])->assertForbidden();
+
+    $this->actingAs($this->admin)->put(route('roles.update', $userRole), [
+        'name' => 'user',
+        'permissions' => array_merge($originalUserPermissions, ['update-user']),
+    ])->assertForbidden();
+
+    expect($userRole->fresh()->permissions->pluck('name')->all())->toEqualCanonicalizing($originalUserPermissions);
+});

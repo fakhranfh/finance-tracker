@@ -26,7 +26,7 @@ class RolePolicy
 
     public function update(User $user, Role $role): bool
     {
-        return $user->can('update-role');
+        return $user->can('update-role') && ! in_array($role->name, self::PROTECTED_ROLES, true);
     }
 
     public function delete(User $user, Role $role): bool

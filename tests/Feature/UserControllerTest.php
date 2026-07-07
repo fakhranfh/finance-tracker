@@ -74,3 +74,13 @@ test('regular user cannot reset another user password', function () {
         'password_confirmation' => 'NewSecret!Pass123#Secure',
     ])->assertForbidden();
 });
+
+test('admin cannot reset their own password via the admin reset endpoint', function () {
+    $response = $this->actingAs($this->admin)->put(route('users.reset-password', $this->admin), [
+        'password' => 'NewSecret!Pass123#Secure',
+        'password_confirmation' => 'NewSecret!Pass123#Secure',
+    ]);
+
+    $response->assertRedirect(route('users.index'))->assertSessionHasErrors('password');
+    expect(Hash::check('NewSecret!Pass123#Secure', $this->admin->fresh()->password))->toBeFalse();
+});

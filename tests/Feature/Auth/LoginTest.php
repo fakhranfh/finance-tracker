@@ -102,3 +102,22 @@ test('login is throttled after 5 failed attempts', function () {
         'password' => 'password',
     ])->assertStatus(429);
 });
+
+test('login throttling cannot be bypassed by spoofing X-Forwarded-For', function () {
+    User::factory()->create([
+        'email' => 'jane@example.com',
+        'password' => 'password',
+    ]);
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->withHeaders(['X-Forwarded-For' => "198.51.100.{$i}"])->post('/login', [
+            'email' => 'jane@example.com',
+            'password' => 'wrong-password',
+        ]);
+    }
+
+    $this->withHeaders(['X-Forwarded-For' => '198.51.100.99'])->post('/login', [
+        'email' => 'jane@example.com',
+        'password' => 'password',
+    ])->assertStatus(429);
+});
